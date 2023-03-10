@@ -109,4 +109,4 @@ def get_response(prompt, filename):
         json.dump(data, f, indent=4)
     return response
 
-bot.run_until_disconnected()
+client.run_until_disconnected()
