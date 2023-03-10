@@ -89,7 +89,7 @@ def start_and_check(message, user):
                     "role": "user",
                     "content": message
                 }) 
-    return filename, prompt
+    return filename, prompt, num_tokens
 
 
 def get_response(prompt, filename):
