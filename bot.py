@@ -2,8 +2,6 @@ from telethon import TelegramClient, events
 import os
 import openai
 import json
-import tiktoken
-
 
 load_dotenv()
 openai.api_key = os.environ.get('API_KEY')
