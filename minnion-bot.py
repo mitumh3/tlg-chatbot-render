@@ -65,7 +65,7 @@ def start_and_check(message, user):
             data = {"session": file_num}
             with open(f"{user}_session.json", 'w') as f:
                 json.dump(data, f)
-            bot.send_message('thisaintminh', f"{num_tokens} exceeds 4096, creating new chat")
+            event.reply(f"{num_tokens} exceeds 4096, creating new chat")
             prompt.append({
                 "role": "user",
                 "content": "summarize this conversation"
