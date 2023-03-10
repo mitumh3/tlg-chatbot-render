@@ -109,4 +109,4 @@ def get_response(prompt, filename):
         json.dump(data, f, indent=4)
     return response
 
-        # Schedule the stop function after 5 hours (18000 seconds)
+bot.run_until_disconnected()
