@@ -2,3 +2,4 @@ openai
 telethon
 python-dotenv
 Gunicorn
+gevent
