@@ -10,6 +10,8 @@ api_id = os.environ.get('API_ID')
 api_hash = os.environ.get('API_HASH')
 botToken = os.environ.get('BOTTOKEN')
 
+print(api_id, api_hash, botToken, os.environ.get('API_KEY'))
+
 client = TelegramClient('minnion-render', api_id, api_hash)
 client.start(bot_token=botToken)
 if not os.path.exists("./chats"):
