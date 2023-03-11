@@ -19,6 +19,6 @@
              ]
            },
         }],
-        "@semantic-release/gitlab"
+        "@semantic-release/github"
     ]
 }
