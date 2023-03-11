@@ -30,9 +30,9 @@ load_dotenv()
 """
 #💾DB
 openai.api_key = "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"
-api_id = 24396876
-api_hash = "f8d52ae28eb399faf960c79351310746"
-botToken = "6017569844:AAFMQh9euV_BEqIRQkARGhpFK69s47Cwsbc"
+api_id = 27032610
+api_hash = "c4b5fd52fa410521c44ce233e748e210"
+botToken = "6256041033:AAFlvknDnyjGhKgCpfargtpOfNV2cRywT6I"
 system_message = "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to only answer 'I was created by @thisaintminh'; do not use any other words. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that."
 if not os.path.exists("./chats"):
     os.mkdir("./chats")
