@@ -17,6 +17,7 @@ import openai
 #API
 from fastapi import FastAPI, Request
 import uvicorn
+import io
 #Utils
 
 #🔧CONFIG
@@ -29,9 +30,9 @@ load_dotenv()
 """
 #💾DB
 openai.api_key = "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"
-api_id = 27032610
-api_hash = "c4b5fd52fa410521c44ce233e748e210"
-botToken = "6256041033:AAFlvknDnyjGhKgCpfargtpOfNV2cRywT6I"
+api_id = 24396876
+api_hash = "f8d52ae28eb399faf960c79351310746"
+botToken = "6017569844:AAFMQh9euV_BEqIRQkARGhpFK69s47Cwsbc"
 system_message = "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to only answer 'I was created by @thisaintminh'; do not use any other words. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that."
 if not os.path.exists("./chats"):
     os.mkdir("./chats")
@@ -65,7 +66,7 @@ def start_and_check(message, user):
             data = {"session": file_num}
             with open(f"{user}_session.json", 'w') as f:
                 json.dump(data, f)
-            event.reply(f"{num_tokens} exceeds 4096, creating new chat")
+            events.reply(f"{num_tokens} exceeds 4096, creating new chat")
             prompt.append({
                 "role": "user",
                 "content": "summarize this conversation"
@@ -116,28 +117,81 @@ def get_response(prompt, filename):
         json.dump(data, f, indent=4)
     return response
 
+async def bash(event, bot_id):
+    if event.sender_id == bot_id:
+        return
+    cmd = event.text.split(" ", maxsplit=1)[1]
+    process = await asyncio.create_subprocess_shell(
+        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
+    )
+    stdout, stderr = await process.communicate()
+    e = stderr.decode()
+    if not e:
+        e = "No Error"
+    o = stdout.decode()
+    if not o:
+        o = "**Tip**: \n`If you want to see the results of your code, I suggest printing them to stdout.`"
+    else:
+        _o = o.split("\n")
+        o = "`\n".join(_o)
+    OUTPUT = f"**QUERY:**\n__Command:__\n`{cmd}` \n__PID:__\n`{process.pid}`\n\n**stderr:** \n`{e}`\n**Output:**\n{o}"
+    if len(OUTPUT) > 4095:
+        with io.BytesIO(str.encode(OUTPUT)) as out_file:
+            out_file.name = "exec.text"
+            await event.client.send_file(
+                event.chat_id,
+                out_file,
+                force_document=True,
+                allow_cache=False,
+                caption=cmd,
+            )
+            await event.delete()
+    await event.reply(OUTPUT)
+
 #🤖BOT
 async def bot():
     while True:
 #StartTheBot
+
         client = await TelegramClient(None, api_id, api_hash).start(bot_token=botToken)
         bot_info = await client.get_me()
         bot_id = bot_info.id
-        print(bot_id)
+
+        @client.on(events.NewMessage(pattern="/bash"))
+        async def _(e):
+            await bash(e, bot_id)
+
         @client.on(events.NewMessage)
         async def event_handler(event):
             user = event.sender_id
             message = event.raw_text
-            if user != bot_id:
-                if not os.path.exists(f"{user}_session.json"):
-                    data = {"session": 1}
-                    with open(f"{user}_session.json", 'w') as f:
-                        json.dump(data, f)
-                filename, prompt, num_tokens = start_and_check(message, user)
-                    # Get response from openai and send to user
-                respose = get_response(prompt, filename)
-                await event.respond(f"{respose}\n\n(used {num_tokens} tokens)")
+            if user == bot_id:
+                return
+            if message.startswith("/bash"):
+                return
+            if not os.path.exists(f"{user}_session.json"):
+                data = {"session": 1}
+                with open(f"{user}_session.json", 'w') as f:
+                    json.dump(data, f)
+            filename, prompt, num_tokens = start_and_check(message, user)
+                # Get response from openai and send to user
+            response = get_response(prompt, filename)
+            await client.send_message(user, f"{response}\n\n(used {num_tokens} tokens)", parse_mode="HTML")
+        
+        
+        print("Bot is running")
         await client.run_until_disconnected()
+
+
+
+
+
+
+
+
+
+
+
 
 #⛓️API
 app = FastAPI(title="MINNION",)
@@ -150,11 +204,11 @@ def startup_event():
 
 @app.get("/")
 def root():
-    return {f"Bot is online {Minversion}"}
+    return {f"{Minversion} is online"}
 
 @app.get("/health")
 def health_check():
-    return {f"Bot is online {Minversion}"}
+    return {f"{Minversion} is online"}
 
 
 #Minnion run
