@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
           cache: npm
           node-version: lts/*
-
+      - run: npm install -g semantic-release
       - run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
