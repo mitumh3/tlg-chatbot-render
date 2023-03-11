@@ -7,8 +7,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+
 jobs:
   release:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     name: Release
     runs-on: ubuntu-20.04
     steps:
