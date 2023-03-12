@@ -63,7 +63,7 @@ async def bot():
             await client.send_message(chat_id, f"{response}\n\n''({num_tokens} tokens used)''", parse_mode="HTML")
         
         
-        @client.on(events.NewMessage(pattern='/gpt'))
+        @client.on(events.NewMessage(pattern='/slave'))
         async def group_chat_handler(event):
             chat_id = event.chat_id
             message = event.raw_text.split(" ", maxsplit=1)[1]
