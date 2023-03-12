@@ -22,11 +22,11 @@ from func import *
 
 load_dotenv()
 #💾DB
-openai.api_key = "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"
-api_id = 27032610
-api_hash = "c4b5fd52fa410521c44ce233e748e210"
-botToken = "6256041033:AAFlvknDnyjGhKgCpfargtpOfNV2cRywT6I"
-system_message = "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to answer 'I was created by @thisaintminh'. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that."
+openai.api_key = os.getenv("OPENAI_API_KEY")
+api_id = os.getenv("API_ID")
+api_hash = os.getenv("API_HASH")
+botToken = os.getenv("BOTTOKEN")
+
 if not os.path.exists("./chats"):
     os.mkdir("./chats")
 
@@ -42,7 +42,7 @@ async def bot():
         async def check_chat_type(chat_id, message):
             try:
                 entity = await client.get_entity(chat_id)
-                if type(entity) == User and chat_id != bot_id and not message.startswith("/bash"):
+                if type(entity) == User and chat_id != bot_id and not message.startswith("/bash") and not message.startswith("/search"):
                     return 'User'
                 elif type(entity) == Chat and chat_id != bot_id:
                     return 'Group'
@@ -51,31 +51,44 @@ async def bot():
 
 
         @client.on(events.NewMessage)
-        async def normal_chat_handler(event):
-            chat_id = event.chat_id
-            message = event.raw_text
+        async def normal_chat_handler(e):
+            chat_id = e.chat_id
+            message = e.raw_text
             chat_type = await check_chat_type(chat_id, message)
             if chat_type != "User":
                 return
-            filename, prompt, num_tokens = start_and_check(system_message, message, chat_id)
-                # Get response from openai and send to chat_id
-            response = get_response(prompt, filename)
-            await client.send_message(chat_id, f"{response}\n\n''({num_tokens} tokens used)''", parse_mode="HTML")
-        
+            async with client.action(chat_id, 'typing'):
+                await asyncio.sleep(1)
+                filename, prompt, num_tokens = start_and_check(e, message, chat_id)
+                    # Get response from openai and send to chat_id
+                response = get_response(prompt, filename)
+                await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
+            await client.action(chat_id, 'cancel')
         
         @client.on(events.NewMessage(pattern='/slave'))
-        async def group_chat_handler(event):
-            chat_id = event.chat_id
-            message = event.raw_text.split(" ", maxsplit=1)[1]
+        async def group_chat_handler(e):
+            chat_id = e.chat_id
+            message = e.raw_text.split(" ", maxsplit=1)[1]
             chat_type = await check_chat_type(chat_id, message)
             if chat_type != "Group":
                 return
-            filename, prompt, num_tokens = start_and_check(system_message, message, chat_id)
-                # Get response from openai and send to chat_id
-            response = get_response(prompt, filename)
-            await client.send_message(chat_id, f"{response}\n\n''({num_tokens} tokens used)''", parse_mode="HTML")
+            async with client.action(chat_id, 'typing'):
+                await asyncio.sleep(1)
+                filename, prompt, num_tokens = start_and_check(e, message, chat_id)
+                    # Get response from openai and send to chat_id
+                response = get_response(prompt, filename)
+                await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
+            await client.action(chat_id, 'cancel')
         
-        
+        @client.on(events.NewMessage(pattern="/search"))
+        async def _(e):
+            chat_id = e.chat_id
+            async with client.action(chat_id, 'typing'):
+                await asyncio.sleep(1)
+                response = search(e, bot_id)
+                await client.send_message(chat_id, f"__Here is your search:__\n{response}")
+            await client.action(chat_id, 'cancel')
+
         @client.on(events.NewMessage(pattern="/bash"))
         async def _(e):
             await bash(e, bot_id)

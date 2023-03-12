@@ -3,3 +3,4 @@ telethon
 python-dotenv
 fastapi
 uvicorn
+duckduckgo_search
