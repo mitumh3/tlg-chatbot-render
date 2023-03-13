@@ -20,7 +20,6 @@ from fastapi import FastAPI
 import uvicorn
 from func import *
 
-load_dotenv()
 #💾DB
 openai.api_key = os.getenv("OPENAI_API_KEY")
 api_id = os.getenv("API_ID")
