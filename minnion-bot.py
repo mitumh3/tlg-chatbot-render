@@ -58,10 +58,10 @@ async def bot():
             if chat_type != "User":
                 return
             async with client.action(chat_id, 'typing'):
-                await asyncio.sleep(1)
-                filename, prompt, num_tokens = start_and_check(e, message, chat_id)
+                await asyncio.sleep(0.5)
+                filename, prompt, num_tokens = await start_and_check(e, message, chat_id)
                     # Get response from openai and send to chat_id
-                response = get_response(prompt, filename)
+                response = await get_response(prompt, filename)
                 await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
             await client.action(chat_id, 'cancel')
         
@@ -73,10 +73,10 @@ async def bot():
             if chat_type != "Group":
                 return
             async with client.action(chat_id, 'typing'):
-                await asyncio.sleep(1)
-                filename, prompt, num_tokens = start_and_check(e, message, chat_id)
+                await asyncio.sleep(0.5)
+                filename, prompt, num_tokens = await  start_and_check(e, message, chat_id)
                     # Get response from openai and send to chat_id
-                response = get_response(prompt, filename)
+                response = await get_response(prompt, filename)
                 await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
             await client.action(chat_id, 'cancel')
         
@@ -84,8 +84,9 @@ async def bot():
         async def _(e):
             chat_id = e.chat_id
             async with client.action(chat_id, 'typing'):
-                await asyncio.sleep(1)
-                response = search(e, bot_id)
+                await asyncio.sleep(0.5)
+                print("Working")
+                response = await search(e, bot_id)
                 await client.send_message(chat_id, f"__Here is your search:__\n{response}")
             await client.action(chat_id, 'cancel')
 

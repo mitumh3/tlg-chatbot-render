@@ -37,7 +37,8 @@ system_message = [
                     }
                 ]
 
-def read_existing_conversation(chat_id):
+async def read_existing_conversation(chat_id):
+    await asyncio.sleep(0.5)
     with open(f"{chat_id}_session.json", 'r') as f:
         file_num=json.load(f)['session']
     filename = f'chats/{chat_id}_{file_num}.json'
@@ -80,13 +81,13 @@ def over_token(event, prompt, filename):
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
 
-def start_and_check(event, message, chat_id):
+async def start_and_check(event, message, chat_id):
     if not os.path.exists(f"{chat_id}_session.json"):
         data = {"session": 1}
         with open(f"{chat_id}_session.json", 'w') as f:
             json.dump(data, f)
     while True:
-        num_tokens, file_num, filename, prompt = read_existing_conversation(chat_id)
+        num_tokens, file_num, filename, prompt = await read_existing_conversation(chat_id)
         if num_tokens > 4000:
             file_num += 1
             data = {"session": file_num}
@@ -98,18 +99,19 @@ def start_and_check(event, message, chat_id):
                 event.reply("An error occurred: {}".format(str(e)))
             continue
         else: break
-
+    await asyncio.sleep(0.5)
     prompt.append({
                     "role": "user",
                     "content": message
                 }) 
     return filename, prompt, num_tokens
 
-def get_response(prompt, filename):
+async def get_response(prompt, filename):
     completion = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=prompt
     )
+    await asyncio.sleep(0.5)
     response = completion.choices[0].message
     num_tokens = completion.usage.total_tokens
     prompt.append(response)
@@ -149,12 +151,14 @@ async def bash(event, bot_id):
             await event.delete()
     await event.reply(OUTPUT)
 
-def search(event, bot_id):
+async def search(event, bot_id):
     chat_id = event.chat_id
     if event.sender_id == bot_id:
         return
+    task = asyncio.create_task(read_existing_conversation(chat_id))
     query = event.text.split(" ", maxsplit=1)[1]
     results = ddg(query, safesearch='Off', page=1)
+    await asyncio.sleep(0.5)
     completion = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=[
@@ -172,8 +176,8 @@ def search(event, bot_id):
     search_object = query.lower().replace(" ", "-")
     with open(f"search_{search_object}.json", 'w') as f:
         json.dump(response, f, indent=4)
-    
-    num_tokens, file_num, filename, prompt = read_existing_conversation(chat_id)
+    num_tokens, file_num, filename, prompt = await task
+    await asyncio.sleep(0.5)
     prompt.append(response)
     data= {"messages":prompt, "num_tokens":num_tokens}
     with open(filename, 'w') as f:
