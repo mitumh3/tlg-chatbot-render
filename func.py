@@ -4,7 +4,9 @@ import os
 import openai
 import io
 from duckduckgo_search import ddg
-import unidecode
+from unidecode import unidecode
+
+vietnamese_words = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
 
 # Function for bot operation
 system_message = [
@@ -35,7 +37,7 @@ async def read_existing_conversation(chat_id):
     num_tokens=data["num_tokens"]
     return num_tokens, file_num, filename, prompt
 
-async def over_token(event, prompt, filename):
+async def over_token(num_tokens, event, prompt, filename):
     await event.reply(f"{num_tokens} exceeds 4096, creating new chat")
     prompt.append({
         "role": "user",
@@ -71,7 +73,7 @@ async def start_and_check(event, message, chat_id):
             with open(f"{chat_id}_session.json", 'w') as f:
                 json.dump(data, f)
             try:
-                await over_token(event, prompt, filename)
+                await over_token(num_tokens, event, prompt, filename)
             except Exception as e:
                 await event.reply("An error occurred: {}".format(str(e)))
             continue
@@ -80,7 +82,7 @@ async def start_and_check(event, message, chat_id):
     prompt.append({
                     "role": "user",
                     "content": message
-                }) 
+                })
     return filename, prompt, num_tokens
 
 async def get_response(prompt, filename):
@@ -135,7 +137,14 @@ async def search(event, bot_id):
     task = asyncio.create_task(read_existing_conversation(chat_id))
     query = event.text.split(" ", maxsplit=1)[1]
     results = ddg(query, safesearch='Off', page=1)
+    accepted_length = int(len(results) * 0.8)
+    results_decoded = unidecode(str(results[:accepted_length])).replace("\'", "'")
     await asyncio.sleep(0.5)
+
+    user_content = f"Using the contents of these pages, summarize and give details about '{query}':\n{results_decoded}"
+    if any(word in query for word in list(vietnamese_words)):
+        user_content = f"Using the contents of these pages, summarize and give details in Vietnamese about '{query}':\n{results_decoded}"
+
     completion = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=[
@@ -145,12 +154,12 @@ async def search(event, bot_id):
                     },
                     {
                     "role": "user",
-                    "content": f"Using the contents of these pages, summarize and give details about '{query}':\n{results}"
+                    "content": user_content
                     },
                 ]
     )
     response = completion.choices[0].message
-    search_object = unidecode.unidecode(query).lower().replace(" ", "-")
+    search_object = unidecode(query).lower().replace(" ", "-")
     with open(f"search_{search_object}.json", 'w') as f:
         json.dump(response, f, indent=4)
     num_tokens, file_num, filename, prompt = await task
