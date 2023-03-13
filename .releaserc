@@ -3,9 +3,7 @@
     "plugins": [
         ["@semantic-release/commit-analyzer", {
            "releaseRules": [
-             {"type": "chore", "scope": "release", "release": "patch"},
-             {"type": "fix", "scope": "major", "release": "patch"},
-             {"type": "fix", "release": "prepatch"}
+             {"type": "chore", "scope": "release", "release": "patch"}
            ]
         }],
         ["@semantic-release/release-notes-generator", {
