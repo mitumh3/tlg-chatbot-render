@@ -4,3 +4,4 @@ python-dotenv
 fastapi
 uvicorn
 duckduckgo_search
+unidecode
