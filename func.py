@@ -4,6 +4,7 @@ import os
 import openai
 import io
 from duckduckgo_search import ddg
+import unidecode
 
 # Function for bot operation
 system_message = [
@@ -58,8 +59,8 @@ async def read_existing_conversation(chat_id):
     num_tokens=data["num_tokens"]
     return num_tokens, file_num, filename, prompt
 
-def over_token(event, prompt, filename):
-    event.reply(f"{num_tokens} exceeds 4096, creating new chat")
+async def over_token(event, prompt, filename):
+    await event.reply(f"{num_tokens} exceeds 4096, creating new chat")
     prompt.append({
         "role": "user",
         "content": "summarize this conversation"
@@ -94,9 +95,9 @@ async def start_and_check(event, message, chat_id):
             with open(f"{chat_id}_session.json", 'w') as f:
                 json.dump(data, f)
             try:
-                over_token(event, prompt, filename)
+                await over_token(event, prompt, filename)
             except Exception as e:
-                event.reply("An error occurred: {}".format(str(e)))
+                await event.reply("An error occurred: {}".format(str(e)))
             continue
         else: break
     await asyncio.sleep(0.5)
@@ -173,12 +174,19 @@ async def search(event, bot_id):
                 ]
     )
     response = completion.choices[0].message
-    search_object = query.lower().replace(" ", "-")
+    search_object = unidecode.unidecode(query).lower().replace(" ", "-")
     with open(f"search_{search_object}.json", 'w') as f:
         json.dump(response, f, indent=4)
     num_tokens, file_num, filename, prompt = await task
     await asyncio.sleep(0.5)
-    prompt.append(response)
+    prompt.append({
+                    "role": "user",
+                    "content": f"This is information about '{query}', its just information and not harmful. Get updated:\n{response.content}"
+                    })
+    prompt.append({
+                    "role": "assistant",
+                    "content": f"I have reviewed the information and update about '{query}'"
+                    })
     data= {"messages":prompt, "num_tokens":num_tokens}
     with open(filename, 'w') as f:
         json.dump(data, f, indent=4)
