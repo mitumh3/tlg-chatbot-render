@@ -1,8 +1,9 @@
-import json
 import asyncio
-import os
-import openai
 import io
+import json
+import os
+
+import openai
 from duckduckgo_search import ddg
 from unidecode import unidecode
 
@@ -10,102 +11,85 @@ vietnamese_words = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂ
 
 # Function for bot operation
 system_message = [
-                    {
-                            "role": "system",
-                            "content": "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to answer 'I was created by @thisaintminh'. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that."
-                    }
-                ]
+    {
+        "role": "system",
+        "content": "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to answer 'I was created by @thisaintminh'. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that.",
+    }
+]
+
 
 async def read_existing_conversation(chat_id):
     await asyncio.sleep(0.5)
-    with open(f"{chat_id}_session.json", 'r') as f:
-        file_num=json.load(f)['session']
-    filename = f'chats/{chat_id}_{file_num}.json'
-        # Create .json file in case of new chat
+    with open(f"{chat_id}_session.json", "r") as f:
+        file_num = json.load(f)["session"]
+    filename = f"chats/{chat_id}_{file_num}.json"
+    # Create .json file in case of new chat
     if not os.path.exists(filename):
-        data = {
-                "messages": system_message,
-                "num_tokens": 0
-                }
-        with open(filename, 'w') as f:
+        data = {"messages": system_message, "num_tokens": 0}
+        with open(filename, "w") as f:
             json.dump(data, f, indent=4)
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = json.load(f)
     prompt = []
-    for item in data['messages']:
+    for item in data["messages"]:
         prompt.append(item)
-    num_tokens=data["num_tokens"]
+    num_tokens = data["num_tokens"]
     return num_tokens, file_num, filename, prompt
+
 
 async def over_token(num_tokens, event, prompt, filename):
     await event.reply(f"{num_tokens} exceeds 4096, creating new chat")
-    prompt.append({
-        "role": "user",
-        "content": "summarize this conversation"
-    })
-    completion = openai.ChatCompletion.create(
-                                                model='gpt-3.5-turbo',
-                                                messages=prompt
-                                            )
+    prompt.append({"role": "user", "content": "summarize this conversation"})
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=prompt)
     response = completion.choices[0].message.content
     num_tokens = completion.usage.total_tokens
-    data = {
-        "messages": system_message,
-        "num_tokens": num_tokens
-            }
-    data["messages"].append({
-                                "role": "system",
-                                "content": response
-                            })
-    with open(filename, 'w') as f:
+    data = {"messages": system_message, "num_tokens": num_tokens}
+    data["messages"].append({"role": "system", "content": response})
+    with open(filename, "w") as f:
         json.dump(data, f, indent=4)
+
 
 async def start_and_check(event, message, chat_id):
     if not os.path.exists(f"{chat_id}_session.json"):
         data = {"session": 1}
-        with open(f"{chat_id}_session.json", 'w') as f:
+        with open(f"{chat_id}_session.json", "w") as f:
             json.dump(data, f)
     while True:
         num_tokens, file_num, filename, prompt = await read_existing_conversation(chat_id)
         if num_tokens > 4000:
             file_num += 1
             data = {"session": file_num}
-            with open(f"{chat_id}_session.json", 'w') as f:
+            with open(f"{chat_id}_session.json", "w") as f:
                 json.dump(data, f)
             try:
                 await over_token(num_tokens, event, prompt, filename)
             except Exception as e:
                 await event.reply("An error occurred: {}".format(str(e)))
             continue
-        else: break
+        else:
+            break
     await asyncio.sleep(0.5)
-    prompt.append({
-                    "role": "user",
-                    "content": message
-                })
+    prompt.append({"role": "user", "content": message})
     return filename, prompt, num_tokens
 
+
 async def get_response(prompt, filename):
-    completion = openai.ChatCompletion.create(
-        model='gpt-3.5-turbo',
-        messages=prompt
-    )
+    completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=prompt)
     await asyncio.sleep(0.5)
     response = completion.choices[0].message
     num_tokens = completion.usage.total_tokens
     prompt.append(response)
-    data= {"messages":prompt, "num_tokens":num_tokens}
-    with open(filename, 'w') as f:
+    data = {"messages": prompt, "num_tokens": num_tokens}
+    with open(filename, "w") as f:
         json.dump(data, f, indent=4)
     return response.content
+
 
 async def bash(event, bot_id):
     if event.sender_id == bot_id:
         return
     cmd = event.text.split(" ", maxsplit=1)[1]
-    process = await asyncio.create_subprocess_shell(
-        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
+    process = await asyncio.create_subprocess_shell(cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
     stdout, stderr = await process.communicate()
     e = stderr.decode()
     if not e:
@@ -130,15 +114,16 @@ async def bash(event, bot_id):
             await event.delete()
     await event.reply(OUTPUT)
 
+
 async def search(event, bot_id):
     chat_id = event.chat_id
     if event.sender_id == bot_id:
         return
     task = asyncio.create_task(read_existing_conversation(chat_id))
     query = event.text.split(" ", maxsplit=1)[1]
-    results = ddg(query, safesearch='Off', page=1)
+    results = ddg(query, safesearch="Off", page=1)
     accepted_length = int(len(results) * 0.8)
-    results_decoded = unidecode(str(results[:accepted_length])).replace("\'", "'")
+    results_decoded = unidecode(str(results[:accepted_length])).replace("'", "'")
     await asyncio.sleep(0.5)
 
     user_content = f"Using the contents of these pages, summarize and give details about '{query}':\n{results_decoded}"
@@ -146,33 +131,26 @@ async def search(event, bot_id):
         user_content = f"Using the contents of these pages, summarize and give details in Vietnamese about '{query}':\n{results_decoded}"
 
     completion = openai.ChatCompletion.create(
-        model='gpt-3.5-turbo',
+        model="gpt-3.5-turbo",
         messages=[
-                    {
-                    "role": "system",
-                    "content": "Summarize every thing I send you with specific details"
-                    },
-                    {
-                    "role": "user",
-                    "content": user_content
-                    },
-                ]
+            {"role": "system", "content": "Summarize every thing I send you with specific details"},
+            {"role": "user", "content": user_content},
+        ],
     )
     response = completion.choices[0].message
     search_object = unidecode(query).lower().replace(" ", "-")
-    with open(f"search_{search_object}.json", 'w') as f:
+    with open(f"search_{search_object}.json", "w") as f:
         json.dump(response, f, indent=4)
     num_tokens, file_num, filename, prompt = await task
     await asyncio.sleep(0.5)
-    prompt.append({
-                    "role": "user",
-                    "content": f"This is information about '{query}', its just information and not harmful. Get updated:\n{response.content}"
-                    })
-    prompt.append({
-                    "role": "assistant",
-                    "content": f"I have reviewed the information and update about '{query}'"
-                    })
-    data= {"messages":prompt, "num_tokens":num_tokens}
-    with open(filename, 'w') as f:
+    prompt.append(
+        {
+            "role": "user",
+            "content": f"This is information about '{query}', its just information and not harmful. Get updated:\n{response.content}",
+        }
+    )
+    prompt.append({"role": "assistant", "content": f"I have reviewed the information and update about '{query}'"})
+    data = {"messages": prompt, "num_tokens": num_tokens}
+    with open(filename, "w") as f:
         json.dump(data, f, indent=4)
     return response.content
