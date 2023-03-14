@@ -121,11 +121,12 @@ async def bot():
 
         @client.on(events.NewMessage(pattern="/bash"))
         async def _(e):
+            response = await bash(e, bot_id)
             try:
-                response = await bash(e, bot_id)
+                await client.send_message(e.chat_id, f"{response}")
                 logging.info(f"Sent /bash to {e.chat_id}")
             except Exception as e:
-                logging.error(f"Error occurred: {e}")
+                logging.error(f"Error occurred while responding /bash cmd: {e}")
 
         print("Bot is running")
         await client.run_until_disconnected()
