@@ -5,3 +5,4 @@ fastapi
 uvicorn
 duckduckgo_search
 unidecode
+tiktoken
