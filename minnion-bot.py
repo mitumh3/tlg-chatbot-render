@@ -1,3 +1,5 @@
+__version__ = "1.0.0"
+Minversion = f"Minnion v{__version__}"
 import io
 import logging
 import subprocess
@@ -12,9 +14,6 @@ from telethon.errors.rpcerrorlist import PeerIdInvalidError, UnauthorizedError
 from telethon.tl.types import Chat, User
 
 from func import *
-
-Minversion = "Minnion"
-
 
 # Load the logging configuration file
 logging.config.fileConfig("logging.ini")
@@ -58,6 +57,7 @@ async def bot():
                     and chat_id != bot_id
                     and not message.startswith("/bash")
                     and not message.startswith("/search")
+                    and not message.startswith("/clear")
                 ):
                     return "User"
                 elif type(entity) == Chat and chat_id != bot_id:
@@ -128,6 +128,16 @@ async def bot():
             except Exception as e:
                 logging.error(f"Error occurred while responding /bash cmd: {e}")
 
+        @client.on(events.NewMessage(pattern="/clear"))
+        async def _(e):
+            e.text = "/bash rm chats/*"
+            response = await bash(e, bot_id)
+            try:
+                await client.send_message(e.chat_id, f"{response}")
+                logging.info(f"Sent /bash to {e.chat_id}")
+            except Exception as e:
+                logging.error(f"Error occurred while responding /bash cmd: {e}")
+
         print("Bot is running")
         await client.run_until_disconnected()
 
@@ -164,42 +174,14 @@ def health_check():
 async def log_check(response: Response):
     async def generate_log():
         console_log = console_out.getvalue()
-        yield f"<pre>{console_log}</pre>".encode("utf-8")
+        yield f"{console_log}".encode("utf-8")
 
     return StreamingResponse(generate_log())
 
 
 @app.get("/terminal", response_class=HTMLResponse)
 async def terminal(request: Request):
-    return """
-    <html>
-    <head>
-        <title>Terminal</title>
-        <script>
-            function sendCommand() {
-                const command = document.getElementById("command").value;
-                fetch("/terminal/run", {
-                    method: "POST",
-                    body: JSON.stringify({command: command}),
-                    headers: {
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById("output").innerHTML += data + "<br>";
-                });
-                document.getElementById("command").value = "";
-            }
-        </script>
-    </head>
-    <body>
-        <div id="output"></div>
-        <input type="text" id="command" onkeydown="if (event.keyCode == 13) sendCommand()">
-        <button onclick="sendCommand()">Run</button>
-    </body>
-    </html>
-    """
+    return Response(content=terminal_html(), media_type="text/html")
 
 
 @app.post("/terminal/run")

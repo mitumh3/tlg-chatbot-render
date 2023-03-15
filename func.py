@@ -45,9 +45,11 @@ async def read_existing_conversation(chat_id):
 
 async def over_token(num_tokens, event, prompt, filename):
     try:
-        await event.reply(f"{num_tokens} exceeds 4096, creating new chat")
+        await event.reply(f"**Reach {num_tokens} tokens**, exceeds 4000, creating new chat")
+        await asyncio.sleep(0.5)
         prompt.append({"role": "user", "content": "summarize this conversation"})
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=prompt)
+        await asyncio.sleep(0.5)
         response = completion.choices[0].message.content
         num_tokens = completion.usage.total_tokens
         data = {"messages": system_message, "num_tokens": num_tokens}
@@ -120,7 +122,7 @@ async def bash(event, bot_id):
         else:
             _o = o.split("\n")
             o = "`\n".join(_o)
-        OUTPUT = f"**   QUERY:**\n__  Command:__` {cmd}` \n__  PID:__` {process.pid}`\n\n**stderr:** \n`  {e}`\n**\nOutput:**\n{o}"
+        OUTPUT = f"**     QUERY:**\n__Command:__` {cmd}` \n__PID:__` {process.pid}`\n\n**stderr:** \n`  {e}`\n**\nOutput:**\n{o}"
         if len(OUTPUT) > 4095:
             with io.BytesIO(str.encode(OUTPUT)) as out_file:
                 out_file.name = "exec.text"
@@ -212,3 +214,35 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
         return num_tokens
     else:
         raise NotImplementedError(f"""num_tokens_from_messages() is not presently implemented for model {model}.""")
+
+
+def terminal_html() -> str:
+    return """
+        <html>
+        <head>
+            <title>Terminal</title>
+            <script>
+                function sendCommand() {
+                    const command = document.getElementById("command").value;
+                    fetch("/terminal/run", {
+                        method: "POST",
+                        body: JSON.stringify({command: command}),
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("output").innerHTML += data + "<br>";
+                    });
+                    document.getElementById("command").value = "";
+                }
+            </script>
+        </head>
+        <body>
+            <div id="output"></div>
+            <input type="text" id="command" onkeydown="if (event.keyCode == 13) sendCommand()">
+            <button onclick="sendCommand()">Run</button>
+        </body>
+        </html>
+    """
