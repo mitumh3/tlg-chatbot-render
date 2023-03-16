@@ -22,7 +22,7 @@ To run this project, you will need the following:
 1. Clone this repository by typing this command in the terminal.
 
 ```bash
-git clone <https://github.com/mitumh3/tlg-chatbot-render.git>
+git clone https://github.com/mitumh3/tlg-chatbot-render.git
 ```
 
 2. Install the required packages by this command.
@@ -35,10 +35,10 @@ pip install -r requirements.txt
 
 ### Get OpenAI API Key
 
-1. Make sure you have an OpenAI account
+1. Make sure you have an OpenAI account.
 2. Go to <https://platform.openai.com/account/api-keys> to create or get an API Key.
 
-> Note: For gpt-3.5-turbo, $0.002 will be charged for 1k tokens. However, there are account plans that give you certain amount of granted credit (my case is a free trial of $18).
+> Note: In gpt-3.5-turbo model, $0.002 will be charged for 1k tokens. However, there are account plans that give you certain amount of granted credit (my case is a free trial of $18).
 
 ### Get Telegram App ID and Hash
 
@@ -74,9 +74,9 @@ BOTTOKEN=YOUR_BOT_TOKEN
 
 > Note:
 >
-> 1. Remember to replace YOUR_OPENAI_API_KEY, YOUR_BOT_TOKEN, YOUR_TELEGRAM_APP_ID, and YOUR_TELEGRAM_APP_HASH with the real keys that you've just got from the above.
-> 2. All the keys should be put in quotes as a string, except YOUR_BOT_TOKEN since it is an integer.
-> 3. For security, `.env` file is only suitable for local run. In case of deployment, your keys should be kept as `SECRETS` or `ENVIRONMENT VARIABLES` that can only be accessed by you.
+> - Remember to replace YOUR_OPENAI_API_KEY, YOUR_BOT_TOKEN, YOUR_TELEGRAM_APP_ID, and YOUR_TELEGRAM_APP_HASH with the real keys that you've just got from the above.
+> - All the keys should be put in quotes as a string, except YOUR_BOT_TOKEN since it is an integer.
+> - For security, `.env` file is only suitable for local run. In case of deployment, your keys should be kept as `SECRETS` or `ENVIRONMENT VARIABLES` that can only be accessed by you.
 
 ## RUN BOT
 
@@ -115,7 +115,7 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 1. Make sure you have a Github repo containing all the files.
 2. Get yourself a render.com account (Logging in with your github account should be the most convenience).
 3. Follow these clicks: Dashboard >> New >> Web Service
-4. Choose the Github repo.
+4. Choose your Github repo.
 5. Complete the form with:
 
 - Name, Region
@@ -136,7 +136,7 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 >
 > - The 4 keys (`OPENAI_KEY_ACCESS`, `BOTTOKEN`, `API_ID`, `API_HASH`) and their values don't need quotes.
 > - Logs can be found on <https://{your_setup_name}.onrender.com/log> and additional bash command can be executed on <https://{your_setup_name}.onrender.com/terminal>
-> - Deployment will take around 15 minutes to complete, but some problems in the server can happen if we interact with the bots in this period (Usually, the bot will get duplicated responses. In case of private chats, without preceded command in message, the bot will "chat" to itself and create a messy looped conversation that will burn out your credits). Therefore, a total of 30m to 1 hour should be taken to avoid the above problem. Or you can chat in a group with preceded commands.
+> - Deployment will take about 15 minutes to complete, but some problems within the server can happen if we interact with the bots in this period (Usually, the bot will get duplicated responses. In case of private chats, without preceded command in message, the bot will "chat" to itself and create a messy looped conversation that will burn out your credits). Therefore, a total of 30m to 1 hour should be taken to avoid the above problem. Or you can chat in a group with preceded commands.
 
 ---
 
@@ -145,7 +145,7 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 - Add more functionalities to the bot.
 - Increase the accuracy of OpenAI responses.
 - Refine the conversation handling.
-- Fix Render server will be reset after every 15 minutes.
+- Fix problem that Render server will be reset after every 15 minutes.
 - Fix bot looped conversation in private chat at deployment start up.
 - To limit the number of tokens generated for each prompt, the tiktoken package is commonly used. However, this package can only be used on newer versions of Python, which can be inconvenient. As a solution, we recommend removing the use of tiktoken and exploring alternatives for limiting token usage.
 
