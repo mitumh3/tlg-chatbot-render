@@ -53,10 +53,12 @@ To get the API ID and Hash of your Telegram app (your bot), you need to follow t
 
 Run the bot in local will required creating an .env file with the following contents:
 
+```python
 OPENAI_KEY_ACCESS="YOUR_OPENAI_API_KEY"
 API_ID="YOUR_TELEGRAM_APP_ID"
 API_HASH="YOUR_TELEGRAM_APP_HASH"
 BOTTOKEN=YOUR_BOT_TOKEN
+```
 
 > Note:
 >
@@ -66,7 +68,11 @@ BOTTOKEN=YOUR_BOT_TOKEN
 
 ## RUN BOT
 
-Run command: "uvicorn minnion-bot:app --port=${PORT:-8080}" in your terminal to initiate the bot.
+Run the command below in your terminal to initiate the bot.
+
+```bash
+uvicorn minnion-bot:app --port=${PORT:-8080}
+```
 
 ## USAGE
 
