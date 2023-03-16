@@ -90,7 +90,7 @@ uvicorn minnion-bot:app --port=${PORT:-8080}
 
 v1.0.x will include the following use:
 
-- Private chat: You can freely chat with the bot through the bot username (@your_bot_username) derived from the BotFather
+- Private chat: You can freely chat with the bot using the bot username (@your_bot_username) derived from the BotFather
 - Group chat: The bot can be invited into groupchat and user can interact with it through command `/slave`.
 - Bash: `/bash {command}` to run bash script.
 - Clear: `/clear` to clear all existing conversations.
