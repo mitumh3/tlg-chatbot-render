@@ -79,12 +79,13 @@ async def bot():
                 await asyncio.sleep(0.5)
                 filename, prompt, num_tokens = await start_and_check(e, message, chat_id)
                 # Get response from openai and send to chat_id
-                response = await get_response(prompt, filename)
                 try:
+                    response = await get_response(prompt, filename)
                     await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
                     logging.info(f"Sent message to {chat_id}")
                 except Exception as e:
                     logging.error(f"Error occurred: {e}")
+                    await e.reply("**Fail to get response**")
             await client.action(chat_id, "cancel")
 
         @client.on(events.NewMessage(pattern="/slave"))
@@ -104,6 +105,7 @@ async def bot():
                     logging.info(f"Sent message to {chat_id}")
                 except Exception as e:
                     logging.error(f"Error occurred: {e}")
+                    await e.reply("**Fail to get response**")
             await client.action(chat_id, "cancel")
 
         @client.on(events.NewMessage(pattern="/search"))
@@ -117,6 +119,7 @@ async def bot():
                     logging.info(f"Sent /search to {chat_id}")
                 except Exception as e:
                     logging.error(f"Error occurred: {e}")
+                    await e.reply("**Fail to get response**")
             await client.action(chat_id, "cancel")
 
         @client.on(events.NewMessage(pattern="/bash"))
