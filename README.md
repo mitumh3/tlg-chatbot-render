@@ -2,7 +2,9 @@
 
 This is a project to create a Telegram chatbot that is integrated with OpenAI to enable natural language processing and intelligent responses in messaging.
 
-The following guide will walk through the steps necessary to set up the chatbot, including registering a new Telegram bot, configuring OpenAI API keys for natural language processing, and integrating the two services into a functional chatbot application.
+Additionally, we will provide guidelines for deploying the bot with zero downtime on Render for free.
+
+The following set of comprehensive instructions will guide you through creating the chatbot, which includes registering a new Telegram bot, configuring OpenAI API keys, integrating the two services, and deploying the application as a 24/7 service.
 
 ## PREREQUISITES
 
@@ -13,11 +15,21 @@ To run this project, you will need the following:
 - An OpenAI API Key
 - Telegram App ID and hash
 - A Telegram Bot token
+- A Render account
 
 ## INSTALLATION
 
-1. Clone this repository by typing git clone <https://github.com/mitumh3/tlg-chatbot-render.git> in the terminal.
-2. Install the required packages by typing pip install -r requirements.txt in the terminal.
+1. Clone this repository by typing this command in the terminal.
+
+```bash
+git clone <https://github.com/mitumh3/tlg-chatbot-render.git> in the terminal.
+```
+
+2. Install the required packages by typing this command in the terminal.
+
+```bash
+pip install -r requirements.txt
+```
 
 ## SETUP KEYS
 
@@ -74,7 +86,7 @@ Run the command below in your terminal to initiate the bot.
 uvicorn minnion-bot:app --port=${PORT:-8080}
 ```
 
-## USAGE
+## FEATURES
 
 v1.0.x will include the following use:
 
@@ -104,7 +116,7 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 2. Get yourself a render.com account (With your github account should be the most convenience).
 3. Follow these clicks: Dashboard >> New >> Web Service
 4. Choose the Github repo.
-5. Complete the form with
+5. Complete the form with:
 
 - Name, Region
 - Runtime: Python
@@ -117,21 +129,26 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 
 ## RUN
 
-1. For the first time, click Create Web Service after fill out the form to start deploying the bot
-2. Manual deployment can be performed in your bot web service found in Dashboard of render
+1. For the first time, click Create Web Service after filling out the form to start deploying the bot.
+2. Manual deployment can be performed in your bot web service found in Dashboard of render.
 
 > Note:
 >
 > - The 4 keys (OPENAI_KEY_ACCESS, BOTTOKEN, API_ID, API_HASH) don't need quotes.
-> - Deployment will take around 15 minutes to complete, but some problems of the server can happen if we interact with the bots in this period (Usually, the bot will get duplicated responses. In case of private chats, without preceded command in message, the bot will "chat" to itself and create a messy looped conversation that will burn out all your credits). Therefore, a total of 30m to 1 hour should be taken to avoid the above problem. Or you can chat in a group with preceded commands.
+> - Logs can be found on <https://{your_setup_name}.onrender.com/log> and additional bash command can be executed on <https://{your_setup_name}.onrender.com/terminal>
+> - Deployment will take around 15 minutes to complete, but some problems in the server can happen if we interact with the bots in this period (Usually, the bot will get duplicated responses. In case of private chats, without preceded command in message, the bot will "chat" to itself and create a messy looped conversation that will burn out all your credits). Therefore, a total of 30m to 1 hour should be taken to avoid the above problem. Or you can chat in a group with preceded commands.
 
 ---
 
-# Possible Improvements
+## Possible Improvements
 
 - Add more functionalities to the bot.
 - Increase the accuracy of OpenAI responses.
 - Refine the conversation handling.
 - Fix render.com server will be reset after every 15 minutes.
-- Fix bot loop conversation in private chat at deployment start up.
-- Remove the use of tiktoken. To control the token amount of each prompt, tiktoken package is required. However, tiktoken can only be used in new Python version, which is a bit annoying.
+- Fix bot looped conversation in private chat at deployment start up.
+- To limit the number of tokens generated for each prompt, the tiktoken package is commonly used. However, this package can only be used on newer versions of Python, which can be inconvenient. As a solution, we recommend removing the use of tiktoken and exploring alternatives for limiting token usage.
+
+## Contributing
+
+We are grateful for contributions of any magnitude. Also, a big thanks to DirtyG2120 for his exceptional and expert contribution.
