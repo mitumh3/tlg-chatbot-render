@@ -1,19 +1,18 @@
+from func import *
+from telethon.tl.types import Chat, User
+from telethon.errors.rpcerrorlist import PeerIdInvalidError, UnauthorizedError
+from telethon import TelegramClient, events
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi import FastAPI, Request, Response
+from dotenv import load_dotenv
+import uvicorn
+import openai
+import subprocess
+import logging
+import io
+
 __version__ = "1.0.0"
 Minversion = f"Minnion v{__version__}"
-import io
-import logging
-import subprocess
-
-import openai
-import uvicorn
-from dotenv import load_dotenv
-from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse, StreamingResponse
-from telethon import TelegramClient, events
-from telethon.errors.rpcerrorlist import PeerIdInvalidError, UnauthorizedError
-from telethon.tl.types import Chat, User
-
-from func import *
 
 # Load the logging configuration file
 logging.config.fileConfig("logging.ini")
@@ -25,7 +24,7 @@ console_out = io.StringIO()
 console_handler = logging.getLogger("appLogger").handlers[0]
 console_handler.stream = console_out
 
-# 💾DB
+# Load  keys
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 api_id = int(os.getenv("API_ID"))
@@ -36,8 +35,8 @@ if not os.path.exists("./chats"):
     os.mkdir("./chats")
 
 
-# 🤖BOT
-async def bot():
+# Bot func
+async def bot() -> None:
     while True:
         try:
             client = await TelegramClient(None, api_id, api_hash).start(bot_token=botToken)
@@ -45,11 +44,12 @@ async def bot():
             bot_id = bot_info.id
             logging.info("Successfully initiate bot")
         except UnauthorizedError:
-            logging.error("Unauthorized access. Please check your Telethon API ID, API hash")
+            logging.error(
+                "Unauthorized access. Please check your Telethon API ID, API hash")
         except Exception as e:
             logging.error(f"Error occurred: {e}")
 
-        async def check_chat_type(chat_id, message):
+        async def check_chat_type(chat_id: int, message: str) -> None:
             try:
                 entity = await client.get_entity(chat_id)
                 if (
@@ -69,7 +69,7 @@ async def bot():
                 logging.error(f"Error occurred: {e}")
 
         @client.on(events.NewMessage)
-        async def normal_chat_handler(e):
+        async def normal_chat_handler(e) -> None:
             chat_id = e.chat_id
             message = e.raw_text
             chat_type = await check_chat_type(chat_id, message)
@@ -89,7 +89,7 @@ async def bot():
             await client.action(chat_id, "cancel")
 
         @client.on(events.NewMessage(pattern="/slave"))
-        async def group_chat_handler(e):
+        async def group_chat_handler(e) -> None:
             chat_id = e.chat_id
             message = e.raw_text.split(" ", maxsplit=1)[1]
             chat_type = await check_chat_type(chat_id, message)
@@ -109,7 +109,7 @@ async def bot():
             await client.action(chat_id, "cancel")
 
         @client.on(events.NewMessage(pattern="/search"))
-        async def _(e):
+        async def _(e) -> None:
             chat_id = e.chat_id
             async with client.action(chat_id, "typing"):
                 await asyncio.sleep(0.5)
@@ -123,36 +123,38 @@ async def bot():
             await client.action(chat_id, "cancel")
 
         @client.on(events.NewMessage(pattern="/bash"))
-        async def _(e):
+        async def _(e) -> None:
             response = await bash(e, bot_id)
             try:
                 await client.send_message(e.chat_id, f"{response}")
                 logging.info(f"Sent /bash to {e.chat_id}")
             except Exception as e:
-                logging.error(f"Error occurred while responding /bash cmd: {e}")
+                logging.error(
+                    f"Error occurred while responding /bash cmd: {e}")
 
         @client.on(events.NewMessage(pattern="/clear"))
-        async def _(e):
+        async def _(e) -> None:
             e.text = "/bash rm chats/*"
             response = await bash(e, bot_id)
             try:
                 await client.send_message(e.chat_id, f"{response}")
                 logging.info(f"Sent /bash to {e.chat_id}")
             except Exception as e:
-                logging.error(f"Error occurred while responding /bash cmd: {e}")
+                logging.error(
+                    f"Error occurred while responding /bash cmd: {e}")
 
         print("Bot is running")
         await client.run_until_disconnected()
 
 
-# ⛓️API
+# API and app handling
 app = FastAPI(
     title="MINNION",
 )
 
 
 @app.on_event("startup")
-def startup_event():
+def startup_event() -> None:
     try:
         loop = asyncio.get_event_loop()
         background_tasks = set()
@@ -164,17 +166,17 @@ def startup_event():
 
 
 @app.get("/")
-def root():
+def root() -> str:
     return {f"{Minversion} is online"}
 
 
 @app.get("/health")
-def health_check():
+def health_check() -> str:
     return {f"{Minversion} is online"}
 
 
 @app.get("/log")
-async def log_check(response: Response):
+async def log_check(response: Response) -> StreamingResponse:
     async def generate_log():
         console_log = console_out.getvalue()
         yield f"{console_log}".encode("utf-8")
@@ -183,14 +185,15 @@ async def log_check(response: Response):
 
 
 @app.get("/terminal", response_class=HTMLResponse)
-async def terminal(request: Request):
+async def terminal(request: Request) -> Response:
     return Response(content=terminal_html(), media_type="text/html")
 
 
 @app.post("/terminal/run")
-async def run_command(command: dict):
+async def run_command(command: dict) -> str:
     try:
-        output_bytes = subprocess.check_output(command["command"], shell=True, stderr=subprocess.STDOUT)
+        output_bytes = subprocess.check_output(
+            command["command"], shell=True, stderr=subprocess.STDOUT)
         output_str = output_bytes.decode("utf-8")
         # Split output into lines and remove any leading/trailing whitespace
         output_lines = [line.strip() for line in output_str.split("\n")]
