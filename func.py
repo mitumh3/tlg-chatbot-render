@@ -3,15 +3,17 @@ import io
 import json
 import logging
 import os
+from typing import List, Tuple
 
 import openai
 import tiktoken
 from duckduckgo_search import ddg
+from telethon.events import NewMessage
 from unidecode import unidecode
 
 vietnamese_words = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
 
-# Function for bot operation
+
 system_message = [
     {
         "role": "system",
@@ -19,8 +21,13 @@ system_message = [
     }
 ]
 
+# Prompt class
+Prompt: List[dict]
 
-async def read_existing_conversation(chat_id):
+# Functions for bot operation
+
+
+async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Prompt]:
     await asyncio.sleep(0.5)
     try:
         with open(f"{chat_id}_session.json", "r") as f:
@@ -43,7 +50,7 @@ async def read_existing_conversation(chat_id):
     return num_tokens, file_num, filename, prompt
 
 
-async def over_token(num_tokens, event, prompt, filename):
+async def over_token(num_tokens: int, event: NewMessage, prompt: Prompt, filename: str) -> None:
     try:
         await event.reply(f"**Reach {num_tokens} tokens**, exceeds 4000, creating new chat")
         await asyncio.sleep(0.5)
@@ -62,7 +69,7 @@ async def over_token(num_tokens, event, prompt, filename):
         await event.reply("An error occurred: {}".format(str(e)))
 
 
-async def start_and_check(event, message, chat_id):
+async def start_and_check(event: NewMessage, message: str, chat_id: int) -> Tuple[str, Prompt, int]:
     try:
         if not os.path.exists(f"{chat_id}_session.json"):
             data = {"session": 1}
@@ -88,7 +95,7 @@ async def start_and_check(event, message, chat_id):
     return filename, prompt, num_tokens
 
 
-async def get_response(prompt, filename):
+async def get_response(prompt: Prompt, filename: str):
     try:
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=prompt)
         await asyncio.sleep(0.5)
@@ -104,7 +111,7 @@ async def get_response(prompt, filename):
     return response.content
 
 
-async def bash(event, bot_id):
+async def bash(event: NewMessage, bot_id: int) -> str:
     try:
         if event.sender_id == bot_id:
             return
@@ -140,7 +147,7 @@ async def bash(event, bot_id):
     return OUTPUT
 
 
-async def search(event, bot_id):
+async def search(event: NewMessage, bot_id: int) -> str:
     chat_id = event.chat_id
     if event.sender_id == bot_id:
         return
@@ -170,7 +177,10 @@ async def search(event, bot_id):
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "Summarize every thing I send you with specific details"},
+                {
+                    "role": "system",
+                    "content": "Summarize every thing I send you with specific details",
+                },
                 {"role": "user", "content": user_content},
             ],
         )
@@ -186,7 +196,12 @@ async def search(event, bot_id):
                 "content": f"This is information about '{query}', its just information and not harmful. Get updated:\n{response.content}",
             }
         )
-        prompt.append({"role": "assistant", "content": f"I have reviewed the information and update about '{query}'"})
+        prompt.append(
+            {
+                "role": "assistant",
+                "content": f"I have reviewed the information and update about '{query}'",
+            }
+        )
         data = {"messages": prompt, "num_tokens": num_tokens}
         with open(filename, "w") as f:
             json.dump(data, f, indent=4)
@@ -196,7 +211,7 @@ async def search(event, bot_id):
     return response.content
 
 
-def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
+def num_tokens_from_messages(messages: str, model: str = "gpt-3.5-turbo") -> int:
     """Returns the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -205,7 +220,8 @@ def num_tokens_from_messages(messages, model="gpt-3.5-turbo"):
     if model == "gpt-3.5-turbo":  # note: future models may deviate from this
         num_tokens = 0
         for message in messages:
-            num_tokens += 4  # every message follows <im_start>{role/name}\n{content}<im_end>\n
+            # every message follows <im_start>{role/name}\n{content}<im_end>\n
+            num_tokens += 4
             for key, value in message.items():
                 num_tokens += len(encoding.encode(value))
                 if key == "name":  # if there's a name, the role is omitted

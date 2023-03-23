@@ -1,15 +1,19 @@
-from func import *
-from telethon.tl.types import Chat, User
-from telethon.errors.rpcerrorlist import PeerIdInvalidError, UnauthorizedError
-from telethon import TelegramClient, events
-from fastapi.responses import HTMLResponse, StreamingResponse
-from fastapi import FastAPI, Request, Response
-from dotenv import load_dotenv
-import uvicorn
-import openai
-import subprocess
-import logging
 import io
+import logging
+import os
+import subprocess
+
+import openai
+import uvicorn
+from dotenv import load_dotenv
+from fastapi import FastAPI, Request, Response
+from fastapi.responses import HTMLResponse, StreamingResponse
+from telethon import TelegramClient
+from telethon.errors.rpcerrorlist import PeerIdInvalidError, UnauthorizedError
+from telethon.events import NewMessage
+from telethon.tl.types import Chat, User
+
+from func import *
 
 __version__ = "1.0.0"
 Minversion = f"Minnion v{__version__}"
@@ -44,8 +48,7 @@ async def bot() -> None:
             bot_id = bot_info.id
             logging.info("Successfully initiate bot")
         except UnauthorizedError:
-            logging.error(
-                "Unauthorized access. Please check your Telethon API ID, API hash")
+            logging.error("Unauthorized access. Please check your Telethon API ID, API hash")
         except Exception as e:
             logging.error(f"Error occurred: {e}")
 
@@ -59,17 +62,18 @@ async def bot() -> None:
                     and not message.startswith("/search")
                     and not message.startswith("/clear")
                 ):
+                    logging.info("Check chat type User done")
                     return "User"
                 elif type(entity) == Chat and chat_id != bot_id:
+                    logging.info("Check chat type Group done")
                     return "Group"
-                logging.info("Check chat type done")
             except PeerIdInvalidError:
                 logging.error("Invalid chat ID")
             except Exception as e:
                 logging.error(f"Error occurred: {e}")
 
-        @client.on(events.NewMessage)
-        async def normal_chat_handler(e) -> None:
+        @client.on(NewMessage)
+        async def normal_chat_handler(e: NewMessage) -> None:
             chat_id = e.chat_id
             message = e.raw_text
             chat_type = await check_chat_type(chat_id, message)
@@ -88,8 +92,8 @@ async def bot() -> None:
                     await e.reply("**Fail to get response**")
             await client.action(chat_id, "cancel")
 
-        @client.on(events.NewMessage(pattern="/slave"))
-        async def group_chat_handler(e) -> None:
+        @client.on(NewMessage(pattern="/slave"))
+        async def group_chat_handler(e: NewMessage) -> None:
             chat_id = e.chat_id
             message = e.raw_text.split(" ", maxsplit=1)[1]
             chat_type = await check_chat_type(chat_id, message)
@@ -108,8 +112,8 @@ async def bot() -> None:
                     await e.reply("**Fail to get response**")
             await client.action(chat_id, "cancel")
 
-        @client.on(events.NewMessage(pattern="/search"))
-        async def _(e) -> None:
+        @client.on(NewMessage(pattern="/search"))
+        async def _(e: NewMessage) -> None:
             chat_id = e.chat_id
             async with client.action(chat_id, "typing"):
                 await asyncio.sleep(0.5)
@@ -122,26 +126,24 @@ async def bot() -> None:
                     await e.reply("**Fail to get response**")
             await client.action(chat_id, "cancel")
 
-        @client.on(events.NewMessage(pattern="/bash"))
-        async def _(e) -> None:
+        @client.on(NewMessage(pattern="/bash"))
+        async def _(e: NewMessage) -> None:
             response = await bash(e, bot_id)
             try:
                 await client.send_message(e.chat_id, f"{response}")
                 logging.info(f"Sent /bash to {e.chat_id}")
             except Exception as e:
-                logging.error(
-                    f"Error occurred while responding /bash cmd: {e}")
+                logging.error(f"Error occurred while responding /bash cmd: {e}")
 
-        @client.on(events.NewMessage(pattern="/clear"))
-        async def _(e) -> None:
+        @client.on(NewMessage(pattern="/clear"))
+        async def _(e: NewMessage) -> None:
             e.text = "/bash rm chats/*"
             response = await bash(e, bot_id)
             try:
                 await client.send_message(e.chat_id, f"{response}")
                 logging.info(f"Sent /bash to {e.chat_id}")
             except Exception as e:
-                logging.error(
-                    f"Error occurred while responding /bash cmd: {e}")
+                logging.error(f"Error occurred while responding /bash cmd: {e}")
 
         print("Bot is running")
         await client.run_until_disconnected()
@@ -192,8 +194,7 @@ async def terminal(request: Request) -> Response:
 @app.post("/terminal/run")
 async def run_command(command: dict) -> str:
     try:
-        output_bytes = subprocess.check_output(
-            command["command"], shell=True, stderr=subprocess.STDOUT)
+        output_bytes = subprocess.check_output(command["command"], shell=True, stderr=subprocess.STDOUT)
         output_str = output_bytes.decode("utf-8")
         # Split output into lines and remove any leading/trailing whitespace
         output_lines = [line.strip() for line in output_str.split("\n")]

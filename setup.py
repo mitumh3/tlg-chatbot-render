@@ -1,17 +1,17 @@
-from setuptools import setup
 import os
 import re
 
+from setuptools import setup
+
 project_name = "Minnion"
 cur_dir = os.path.abspath(os.path.dirname(__file__))
+
 
 def read_version():
     _version_re = re.compile(r"version\s+=\s+(.*)")
     _version_path = os.path.join(cur_dir, "__version__.py")
     with open(_version_path, "rb") as f:
-        version = str(
-            ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1))
-        )
+        version = str(ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1)))
 
     return version
 
