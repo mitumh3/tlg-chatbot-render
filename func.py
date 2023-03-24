@@ -21,8 +21,8 @@ system_message = [
     }
 ]
 
-# Prompt class
-Prompt: List[dict]
+# Prompt typehint
+Prompt = List[dict]
 
 # Functions for bot operation
 
