@@ -3,6 +3,8 @@ venv/*
 env/*
 **/__pycache__
 .env
-*.log
-*.json
-test.*
+**/*.log
+**/*.json
+**/test.*
+**/chats
+**/Makefile
