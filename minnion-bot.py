@@ -2,24 +2,25 @@ import io
 import logging
 import os
 import subprocess
+from importlib.machinery import SourceFileLoader
 
 import openai
 import uvicorn
-from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
-from telethon import TelegramClient
-from telethon.errors.rpcerrorlist import PeerIdInvalidError, UnauthorizedError
-from telethon.events import NewMessage
-from telethon.tl.types import Chat, User
+from telethon import TelegramClient, functions
+from telethon.errors.rpcerrorlist import UnauthorizedError
 
-from func import *
+from handlers import *
+from src import *
 
-__version__ = "1.0.0"
-Minversion = f"Minnion v{__version__}"
-
+try:
+    version = SourceFileLoader("__version__", "__version__.py").load_module().__version__
+    Minversion = f"Minnion v{version}"
+except:
+    Minversion = "Minnion v1.0.7"
 # Load the logging configuration file
-logging.config.fileConfig("logging.ini")
+logging.config.fileConfig("log/logging.ini")
 # Set the log level to INFO
 logging.getLogger("appLogger")
 # Create a StringIO object to capture log messages sent to the console
@@ -29,14 +30,13 @@ console_handler = logging.getLogger("appLogger").handlers[0]
 console_handler.stream = console_out
 
 # Load  keys
-load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 api_id = os.getenv("API_ID")
 api_hash = os.getenv("API_HASH")
 botToken = os.getenv("BOTTOKEN")
 
-if not os.path.exists("./chats"):
-    os.mkdir("./chats")
+if not os.path.exists("./log/chats"):
+    os.mkdir("./log/chats")
 
 
 # Bot func
@@ -47,103 +47,21 @@ async def bot() -> None:
             bot_info = await client.get_me()
             bot_id = bot_info.id
             logging.info("Successfully initiate bot")
+            await client(functions.contacts.BlockRequest(id=bot_id))
         except UnauthorizedError:
             logging.error("Unauthorized access. Please check your Telethon API ID, API hash")
         except Exception as e:
             logging.error(f"Error occurred: {e}")
 
-        async def check_chat_type(chat_id: int, message: str) -> str:
-            try:
-                entity = await client.get_entity(chat_id)
-                if (
-                    type(entity) == User
-                    and chat_id != bot_id
-                    and not message.startswith("/bash")
-                    and not message.startswith("/search")
-                    and not message.startswith("/clear")
-                ):
-                    logging.info("Check chat type User done")
-                    return "User"
-                elif type(entity) == Chat and chat_id != bot_id:
-                    logging.info("Check chat type Group done")
-                    return "Group"
-            except PeerIdInvalidError:
-                logging.error("Invalid chat ID")
-            except Exception as e:
-                logging.error(f"Error occurred: {e}")
-
-        @client.on(NewMessage)
-        async def normal_chat_handler(event: NewMessage) -> None:
-            chat_id = event.chat_id
-            message = event.raw_text
-            chat_type = await check_chat_type(chat_id, message)
-            if chat_type != "User":
-                return
-            async with client.action(chat_id, "typing"):
-                await asyncio.sleep(0.5)
-                filename, prompt, num_tokens = await start_and_check(event, message, chat_id)
-                # Get response from openai and send to chat_id
-                try:
-                    response = await get_response(prompt, filename)
-                    await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
-                    logging.info(f"Sent message to {chat_id}")
-                except Exception as e:
-                    logging.error(f"Error occurred: {e}")
-                    await event.reply("**Fail to get response**")
-            await client.action(chat_id, "cancel")
-
-        @client.on(NewMessage(pattern="/slave"))
-        async def group_chat_handler(event: NewMessage) -> None:
-            chat_id = event.chat_id
-            message = event.raw_text.split(" ", maxsplit=1)[1]
-            chat_type = await check_chat_type(chat_id, message)
-            if chat_type != "Group":
-                return
-            async with client.action(chat_id, "typing"):
-                await asyncio.sleep(0.5)
-                filename, prompt, num_tokens = await start_and_check(event, message, chat_id)
-                # Get response from openai and send to chat_id
-                response = await get_response(prompt, filename)
-                try:
-                    await client.send_message(chat_id, f"{response}\n\n__({num_tokens} tokens used)__")
-                    logging.info(f"Sent message to {chat_id}")
-                except Exception as e:
-                    logging.error(f"Error occurred: {e}")
-                    await event.reply("**Fail to get response**")
-            await client.action(chat_id, "cancel")
-
-        @client.on(NewMessage(pattern="/search"))
-        async def _(event: NewMessage) -> None:
-            chat_id = event.chat_id
-            async with client.action(chat_id, "typing"):
-                await asyncio.sleep(0.5)
-                response = await search(event, bot_id)
-                try:
-                    await client.send_message(chat_id, f"__Here is your search:__\n{response}")
-                    logging.info(f"Sent /search to {chat_id}")
-                except Exception as e:
-                    logging.error(f"Error occurred: {e}")
-                    await event.reply("**Fail to get response**")
-            await client.action(chat_id, "cancel")
-
-        @client.on(NewMessage(pattern="/bash"))
-        async def _(event: NewMessage) -> None:
-            response = await bash(event, bot_id)
-            try:
-                await client.send_message(event.chat_id, f"{response}")
-                logging.info(f"Sent /bash to {event.chat_id}")
-            except Exception as e:
-                logging.error(f"Error occurred while responding /bash cmd: {e}")
-
-        @client.on(NewMessage(pattern="/clear"))
-        async def _(event: NewMessage) -> None:
-            event.text = "/bash rm chats/*"
-            response = await bash(event, bot_id)
-            try:
-                await client.send_message(event.chat_id, f"{response}")
-                logging.info(f"Sent /bash to {event.chat_id}")
-            except Exception as e:
-                logging.error(f"Error occurred while responding /bash cmd: {e}")
+        # Search feature
+        client.add_event_handler(search_handler)
+        # Terminal bash feature
+        client.add_event_handler(bash_handler)
+        # Clear chat history feature
+        client.add_event_handler(clear_handler)
+        # User and group chat
+        client.add_event_handler(user_chat_handler)
+        client.add_event_handler(group_chat_handler)
 
         print("Bot is running")
         await client.run_until_disconnected()
