@@ -29,8 +29,8 @@ jobs:
         git config --global user.email "${EMAIL}"
         git add __version__.py
         git commit -m "Update version in __version__.py file"
-        env:
-          EMAIL: ${{ secrets.EMAIL }}
+      env:
+        EMAIL: ${{ secrets.EMAIL }}
     - name: Push changes # push the output folder to your repo
       uses: ad-m/github-push-action@master
       with:
