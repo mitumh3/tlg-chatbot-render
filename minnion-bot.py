@@ -5,6 +5,7 @@ import subprocess
 
 import openai
 import uvicorn
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
 from telethon import TelegramClient, functions
@@ -29,6 +30,7 @@ console_handler = logging.getLogger("appLogger").handlers[0]
 console_handler.stream = console_out
 
 # Load  keys
+load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 api_id = os.getenv("API_ID")
 api_hash = os.getenv("API_HASH")
@@ -95,7 +97,7 @@ def health_check() -> str:
 
 
 @app.get("/log")
-async def log_check(response: Response) -> StreamingResponse:
+async def log_check() -> StreamingResponse:
     async def generate_log() -> Generator[bytes, None, None]:
         console_log = console_out.getvalue()
         yield f"{console_log}".encode("utf-8")
