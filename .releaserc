@@ -21,9 +21,6 @@
              ]
            }
         }],
-        "@semantic-release/github",
-        ["semantic-release-version", {
-          "file": "__version__.py"
-        }]    
+        "@semantic-release/github"
     ]
 }

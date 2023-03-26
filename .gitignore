@@ -4,6 +4,7 @@ env/*
 **/__pycache__
 .env
 **/*.log
+**/*.json
 **/test.*
 **/chats
 **/Makefile

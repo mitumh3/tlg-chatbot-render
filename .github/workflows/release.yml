@@ -31,10 +31,13 @@ jobs:
           node-version: "lts/*"
       - name: Install dependencies
         run: npm install -g semantic-release conventional-changelog-conventionalcommits semantic-release/git semantic-release/changelog semantic-release/github semantic-release/exec
-      - name: Install semantic-release-version
-        run: npm install --save semantic-release-version
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
+      - name: Update version
+        run: |
+          VERSION=$(git describe --tags | cut -d'-' -f1)
+          echo "__version__ = '$VERSION'" > __version__.py
+
