@@ -38,6 +38,7 @@ jobs:
         run: npx semantic-release
       - name: Update version
         run: |
+          ls -a
           VERSION=$(git describe --tags | cut -d'-' -f1)
           echo $VERSION
           touch __version__.py; echo "__version__ = '$VERSION'" > __version__.py
