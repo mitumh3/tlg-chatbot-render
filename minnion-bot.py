@@ -15,9 +15,9 @@ from handlers import *
 from src import *
 
 try:
-    Minversion = f"Minnion v{__version__}"
+    Minversion = f"Minnion {__version__}"
 except:
-    Minversion = "Minnion v1.0.7"
+    Minversion = "Minnion v1.0.0"
 # Load the logging configuration file
 logging.config.fileConfig("log/logging.ini")
 # Set the log level to INFO
