@@ -25,7 +25,7 @@ jobs:
         git config --global user.email "${EMAIL}"
         git add __version__.py
         git commit -m "Update version in __version__.py file"
-        git push https://mitumh3:$GITHUB_TOKEN@github.com/mitumh3/tlg-chatbot-render main
+        git push https://$GH_PAT@github.com/mitumh3/tlg-chatbot-render main
         env:
           EMAIL: ${{ secrets.EMAIL }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
