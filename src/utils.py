@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple
 
 import tiktoken
 from telethon.errors.rpcerrorlist import PeerIdInvalidError

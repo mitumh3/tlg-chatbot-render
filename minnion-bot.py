@@ -96,7 +96,7 @@ def health_check() -> str:
 
 @app.get("/log")
 async def log_check(response: Response) -> StreamingResponse:
-    async def generate_log():
+    async def generate_log() -> Generator[bytes, None, None]:
         console_log = console_out.getvalue()
         yield f"{console_log}".encode("utf-8")
 
