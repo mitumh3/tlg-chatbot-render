@@ -19,8 +19,11 @@
                {"type": "chore", "section": "Miscellaneous Chores"},
                {"type": "revert", "section": "Reverts"}
              ]
-           },
+           }
         }],
-        "@semantic-release/github"
+        "@semantic-release/github",
+        ["semantic-release-version", {
+          "file": "__version__.py"
+        }]    
     ]
 }

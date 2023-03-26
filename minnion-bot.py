@@ -2,7 +2,6 @@ import io
 import logging
 import os
 import subprocess
-from importlib.machinery import SourceFileLoader
 
 import openai
 import uvicorn
@@ -11,12 +10,12 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from telethon import TelegramClient, functions
 from telethon.errors.rpcerrorlist import UnauthorizedError
 
+from __version__ import __version__
 from handlers import *
 from src import *
 
 try:
-    version = SourceFileLoader("__version__", "__version__.py").load_module().__version__
-    Minversion = f"Minnion v{version}"
+    Minversion = f"Minnion v{__version__}"
 except:
     Minversion = "Minnion v1.0.7"
 # Load the logging configuration file
