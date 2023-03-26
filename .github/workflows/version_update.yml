@@ -1,12 +1,18 @@
-name: Version Update
+name: Version Update Workflow
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows:
+      - "CI"
+    branches:
+      - main
+    types:
+      - completed
 
 jobs:
   version_update:
     runs-on: ubuntu-latest
-    needs: release
+    needs: release.release
+
     steps:
     - uses: actions/checkout@v2
     - name: Update version
