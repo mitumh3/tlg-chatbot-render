@@ -21,11 +21,17 @@ jobs:
         echo "__version__ = '$VERSION'" > __version__.py
     - name: Commit version update changes
       run: |
+        echo ${GITHUB_ACTOR}
+        echo ${EMAIL}
         git config --global user.name "${GITHUB_ACTOR}"
         git config --global user.email "${EMAIL}"
         git add __version__.py
         git commit -m "Update version in __version__.py file"
-        git push https://$GH_PAT@github.com/mitumh3/tlg-chatbot-render main
         env:
           EMAIL: ${{ secrets.EMAIL }}
-          GH_PAT: ${{ secrets.GH_PAT }}
+    - name: Push changes # push the output folder to your repo
+      uses: ad-m/github-push-action@master
+      with:
+      # branch: B77 #ignore if your branch is master
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      force: true
