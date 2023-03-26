@@ -39,5 +39,6 @@ jobs:
       - name: Update version
         run: |
           VERSION=$(git describe --tags | cut -d'-' -f1)
-          echo "__version__ = '$VERSION'" > __version__.py
+          echo $VERSION
+          touch __version__.py; echo "__version__ = '$VERSION'" > __version__.py
 
