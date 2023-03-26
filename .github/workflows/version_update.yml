@@ -11,10 +11,9 @@ on:
 jobs:
   version_update:
     runs-on: ubuntu-latest
-    needs: release.release
-
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout Code
+      uses: actions/checkout@v2
     - name: Update version
       run: |
         VERSION=$(git describe --tags | cut -d'-' -f1)
