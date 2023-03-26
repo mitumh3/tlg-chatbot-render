@@ -1,0 +1,26 @@
+name: Version Update
+on:
+  push:
+    branches: [main]
+
+jobs:
+  version_update:
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+    - uses: actions/checkout@v2
+    - name: Update version
+      run: |
+        VERSION=$(git describe --tags | cut -d'-' -f1)
+        touch __version__.py
+        echo "__version__ = '$VERSION'" > __version__.py
+    - name: Commit version update changes
+      run: |
+        git config --global user.name "${GITHUB_ACTOR}"
+        git config --global user.email "${EMAIL}"
+        git add __version__.py
+        git commit -m "Update version in __version__.py file"
+        git push https://$GITHUB_TOKEN@github.com/mitumh3/tlg-chatbot-render main
+        env:
+          EMAIL: ${{ secrets.EMAIL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

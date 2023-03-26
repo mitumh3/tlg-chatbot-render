@@ -3,6 +3,9 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '__version__.py'
+
   pull_request:
     branches:
       - main
@@ -36,10 +39,3 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npx semantic-release
-      - name: Update version
-        run: |
-          ls -a
-          VERSION=$(git describe --tags | cut -d'-' -f1)
-          echo $VERSION
-          touch __version__.py; echo "__version__ = '$VERSION'" > __version__.py
-
