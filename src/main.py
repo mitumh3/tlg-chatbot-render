@@ -46,12 +46,12 @@ def startup_event() -> None:
 
 @app.get("/")
 def root() -> str:
-    return {f"{BOT_NAME} {BOT_VERSION} is online"}
+    return f"{BOT_NAME} {BOT_VERSION} is online"
 
 
 @app.get("/health")
 def health_check() -> str:
-    return {f"{BOT_NAME} {BOT_VERSION} is online"}
+    return f"{BOT_NAME} {BOT_VERSION} is online"
 
 
 @app.get("/log")
