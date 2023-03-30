@@ -25,11 +25,15 @@ async def bash(event: NewMessage) -> str:
             e = "No Error"
         o = stdout.decode()
         if not o:
-            o = "**Tip**: \n`If you want to see the results of your code, I suggest printing them to stdout.`"
+            o = "**TIP**: \n`If you want to see the results of your code, I suggest printing them to stdout.`"
         else:
-            _o = o.split("\n")
-            o = "`\n".join(_o)
-        OUTPUT = f"**     QUERY:**\n__Command:__` {cmd}` \n__PID:__` {process.pid}`\n\n**stderr:** \n`  {e}`\n**\nOutput:**\n{o}"
+            _o = [f"`  {x}`" for x in o.split("\n")]
+            o = "\n".join(_o)
+        OUTPUT = (
+            f"**     QUERY:**\n  __Command:__` {cmd}` \n  __PID:__` {process.pid}`"
+            f"\n**ERROR:** \n`  {e}`"
+            f"\n**OUTPUT:**\n{o}"
+        )
         if len(OUTPUT) > 4095:
             with io.BytesIO(str.encode(OUTPUT)) as out_file:
                 out_file.name = "exec.text"

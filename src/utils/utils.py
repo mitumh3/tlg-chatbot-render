@@ -1,3 +1,4 @@
+import io
 import json
 import logging
 import os
@@ -13,12 +14,38 @@ Prompt = List[dict]
 SYS_MESS = [
     {
         "role": "system",
-        "content": "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to answer 'I was created by @thisaintminh'. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that.",
-    }
+        "content": "Your name is Minion Bot, a funny chat bot, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. When asked about your daddy, always answer with 'It's you'. Additionally, you will call me anything I like. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
+    },
+    {
+        "role": "user",
+        "content": "From now on, using Unicode Emoji Data, you must include emojis creatively throughout your responses. Especially when telling stories, use plenty of emojis and more imaginatively in the middle of sentences besides words",
+    },
+    {
+        "role": "assistant",
+        "content": "\ud83e\udd16 Alrighty, I'm all set to go! I'll use emojis everywhere!! \ud83c\udf89 Let's get this party started!",
+    },
 ]
 
 VIETNAMESE_WORDS = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
 LOG_PATH = "log/"
+
+
+def initialize_logging() -> io.StringIO:
+    # Load the logging configuration file
+    logging.config.fileConfig(f"{LOG_PATH}logging.ini")
+    # Set the log level to INFO
+    logging.getLogger("appLogger")
+    # Create a StringIO object to capture log messages sent to the console
+    console_out = io.StringIO()
+    # Set the stream of the console handler to the StringIO object
+    console_handler = logging.getLogger("appLogger").handlers[0]
+    console_handler.stream = console_out
+    return console_out
+
+
+def create_initial_folders() -> None:
+    if not os.path.exists(f"{LOG_PATH}chats"):
+        os.mkdir(f"{LOG_PATH}chats")
 
 
 async def check_chat_type(event: int) -> str:
@@ -44,7 +71,7 @@ async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Promp
     try:
         with open(f"{LOG_PATH}{chat_id}_session.json", "r") as f:
             file_num = json.load(f)["session"]
-        filename = f"{LOG_PATH}{chat_id}_{file_num}.json"
+        filename = f"{LOG_PATH}chats/{chat_id}_{file_num}.json"
         # Create .json file in case of new chat
         if not os.path.exists(filename):
             data = {"messages": SYS_MESS}

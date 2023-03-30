@@ -1,8 +1,9 @@
+import asyncio
 import logging
 
 from telethon.events import NewMessage, StopPropagation, register
 from telethon.tl.functions.messages import SetTypingRequest
-from telethon.tl.types import SendMessageTypingAction
+from telethon.tl.types import SendMessageChooseStickerAction, SendMessageTypingAction
 
 from src.functions.additional_func import bash, search
 from src.functions.chat_func import get_response, start_and_check
@@ -66,6 +67,8 @@ async def user_chat_handler(event: NewMessage) -> None:
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         await event.reply("**Fail to get response**")
+    await client(SetTypingRequest(peer=chat_id, action=SendMessageChooseStickerAction()))
+    await asyncio.sleep(1)
     await client.action(chat_id, "cancel")
 
 
@@ -85,4 +88,6 @@ async def group_chat_handler(event: NewMessage) -> None:
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         await event.reply("**Fail to get response**")
+    await client(SetTypingRequest(peer=chat_id, action=SendMessageChooseStickerAction()))
+    await asyncio.sleep(1)
     await client.action(chat_id, "cancel")

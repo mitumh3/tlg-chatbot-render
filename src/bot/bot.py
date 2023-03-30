@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Tuple
 
 import openai
 from dotenv import load_dotenv
@@ -8,19 +9,20 @@ from telethon.errors.rpcerrorlist import UnauthorizedError
 
 from src.handlers import bash_handler, clear_handler, group_chat_handler, search_handler, user_chat_handler
 
-# Load  keys
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-api_id = os.getenv("API_ID")
-api_hash = os.getenv("API_HASH")
-botToken = os.getenv("BOTTOKEN")
 
-if not os.path.exists("./log/chats"):
-    os.mkdir("./log/chats")
+# Load  keys
+def load_keys() -> Tuple[str, int, str]:
+    load_dotenv()
+    openai.api_key = os.getenv("OPENAI_API_KEY")
+    api_id = os.getenv("API_ID")
+    api_hash = os.getenv("API_HASH")
+    botToken = os.getenv("BOTTOKEN")
+    return api_id, api_hash, botToken
 
 
 async def bot() -> None:
     while True:
+        api_id, api_hash, botToken = load_keys()
         try:
             client = await TelegramClient(None, api_id, api_hash).start(bot_token=botToken)
             bot_info = await client.get_me()
@@ -34,10 +36,13 @@ async def bot() -> None:
 
         # Search feature
         client.add_event_handler(search_handler)
+
         # Terminal bash feature
         client.add_event_handler(bash_handler)
+
         # Clear chat history feature
         client.add_event_handler(clear_handler)
+
         # User and group chat
         client.add_event_handler(user_chat_handler)
         client.add_event_handler(group_chat_handler)

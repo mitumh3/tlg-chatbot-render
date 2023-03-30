@@ -1,5 +1,4 @@
 import asyncio
-import io
 import logging
 import os
 import subprocess
@@ -10,26 +9,22 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
 
 from __version__ import __version__
-from src.bot import *
-from src.utils import LOG_PATH, terminal_html
+from src.bot import bot
+from src.utils import create_initial_folders, initialize_logging, terminal_html
 
-# Load the logging configuration file
-logging.config.fileConfig(f"{LOG_PATH}logging.ini")
-# Set the log level to INFO
-logging.getLogger("appLogger")
-# Create a StringIO object to capture log messages sent to the console
-console_out = io.StringIO()
-# Set the stream of the console handler to the StringIO object
-console_handler = logging.getLogger("appLogger").handlers[0]
-console_handler.stream = console_out
+# Initialize
+console_out = initialize_logging()
+create_initial_folders()
 
 # Bot name
 BOT_NAME = "MINNION"
+
 # Bot version
 try:
     BOT_VERSION = __version__
 except:
     BOT_VERSION = "v1.0.0"
+
 
 # API and app handling
 app = FastAPI(

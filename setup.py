@@ -1,37 +1,30 @@
 import os
 import re
+from typing import List
 
+from __version__ import __version__
 from setuptools import setup
 
-project_name = "Minnion"
+PROJECT_NAME = "Minnion"
 cur_dir = os.path.abspath(os.path.dirname(__file__))
 
 
-def read_version():
-    _version_re = re.compile(r"version\s+=\s+(.*)")
-    _version_path = os.path.join(cur_dir, "__version__.py")
-    with open(_version_path, "rb") as f:
-        version = str(ast.literal_eval(_version_re.search(f.read().decode("utf-8")).group(1)))
-
-    return version
-
-
-def read_requirements():
+def read_requirements() -> List[str]:
     with open(os.path.join(cur_dir, "requirements.txt")) as f:
         content = f.read()
         requirements = content.split("\n")
     return requirements
 
 
-def read_readme():
+def read_readme() -> str:
     with open(os.path.join(cur_dir, "README.md")) as f:
         long_description = f.read()
     return long_description
 
 
 setup(
-    name=project_name,
-    version=read_version(),
+    name=PROJECT_NAME,
+    version=__version__,
     description="OpenAI GPT bot with Duckduckgo search engine",
     long_description=read_readme(),
     long_description_content_type="text/markdown",
