@@ -28,7 +28,7 @@ git clone https://github.com/mitumh3/tlg-chatbot-render.git
 2. Install the required packages by this command.
 
 ```bash
-pip install -r requirements.txt
+pip install -r meta/requirements.txt
 ```
 
 ## SETUP KEYS
