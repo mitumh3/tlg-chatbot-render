@@ -61,9 +61,7 @@ async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Promp
     return file_num, filename, prompt
 
 
-def num_tokens_from_messages(
-    messages: Prompt, model: Optional[str] = "gpt-3.5-turbo"
-) -> int:
+def num_tokens_from_messages(messages: Prompt, model: Optional[str] = "gpt-3.5-turbo") -> int:
     """Returns the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -81,9 +79,7 @@ def num_tokens_from_messages(
         num_tokens += 2  # every reply is primed with <im_start>assistant
         return num_tokens
     else:
-        raise NotImplementedError(
-            f"""num_tokens_from_messages() is not presently implemented for model {model}."""
-        )
+        raise NotImplementedError(f"""num_tokens_from_messages() is not presently implemented for model {model}.""")
 
 
 def check_message_before_sending(input_str: str) -> List[str]:

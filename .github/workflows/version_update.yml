@@ -19,15 +19,15 @@ jobs:
     - name: Update version
       run: |
         VERSION=$(git describe --tags | cut -d'-' -f1)
-        touch meta/__version__.py
-        echo "__version__ = '$VERSION'" > meta/__version__.py
+        touch __version__.py
+        echo "__version__ = '$VERSION'" > __version__.py
     - name: Commit version update changes
       run: |
         echo ${GITHUB_ACTOR}
         echo ${EMAIL}
         git config --global user.name "${GITHUB_ACTOR}"
         git config --global user.email "${EMAIL}"
-        git add meta__version__.py
+        git add __version__.py
         git commit -m "Update version in __version__.py file" || true
       env:
         EMAIL: ${{ secrets.EMAIL }}

@@ -4,7 +4,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'meta/__version__.py'
+      - '__version__.py'
 
   pull_request:
     branches:

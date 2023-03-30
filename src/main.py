@@ -8,7 +8,8 @@ from typing import Generator
 import uvicorn
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
-from meta.__version__ import __version__
+
+from __version__ import __version__
 from src.bot import *
 from src.utils import LOG_PATH, terminal_html
 
@@ -75,9 +76,7 @@ async def terminal(request: Request) -> Response:
 @app.post("/terminal/run")
 async def run_command(command: dict) -> str:
     try:
-        output_bytes = subprocess.check_output(
-            command["command"], shell=True, stderr=subprocess.STDOUT
-        )
+        output_bytes = subprocess.check_output(command["command"], shell=True, stderr=subprocess.STDOUT)
         output_str = output_bytes.decode("utf-8")
         # Split output into lines and remove any leading/trailing whitespace
         output_lines = [line.strip() for line in output_str.split("\n")]

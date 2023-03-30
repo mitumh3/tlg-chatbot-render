@@ -1,11 +1,12 @@
 import logging
 
-from src.functions.additional_func import bash, search
-from src.functions.chat_func import get_response, start_and_check
-from src.utils import check_chat_type
 from telethon.events import NewMessage, StopPropagation, register
 from telethon.tl.functions.messages import SetTypingRequest
 from telethon.tl.types import SendMessageTypingAction
+
+from src.functions.additional_func import bash, search
+from src.functions.chat_func import get_response, start_and_check
+from src.utils import check_chat_type
 
 
 @register(NewMessage(pattern="/search"))
