@@ -28,7 +28,7 @@ git clone https://github.com/mitumh3/tlg-chatbot-render.git
 2. Install the required packages by this command.
 
 ```bash
-pip install -r meta/requirements.txt
+pip install -r requirements.txt
 ```
 
 ## SETUP KEYS
@@ -83,7 +83,7 @@ BOTTOKEN=YOUR_BOT_TOKEN
 Run the command below in your terminal to initiate the bot.
 
 ```bash
-uvicorn main:app --port=${PORT:-8080}
+uvicorn src.main:app --port=${PORT:-8080}
 ```
 
 ## FEATURES
