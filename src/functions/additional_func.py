@@ -1,15 +1,18 @@
 import asyncio
 import io
+import json
+import logging
 
 import openai
 from duckduckgo_search import ddg
+from src.utils import (
+    LOG_PATH,
+    VIETNAMESE_WORDS,
+    num_tokens_from_messages,
+    read_existing_conversation,
+)
 from telethon.events import NewMessage
 from unidecode import unidecode
-
-from .utils import *
-
-vietnamese_words = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
-
 
 # Functions for bot operation
 
@@ -58,10 +61,8 @@ async def search(event: NewMessage) -> str:
             results = ddg(query, safesearch="Off", max_results=max_results)
             results_decoded = unidecode(str(results)).replace("'", "'")
             await asyncio.sleep(0.5)
-            user_content = (
-                f"Using the contents of these pages, summarize and give details about '{query}':\n{results_decoded}"
-            )
-            if any(word in query for word in list(vietnamese_words)):
+            user_content = f"Using the contents of these pages, summarize and give details about '{query}':\n{results_decoded}"
+            if any(word in query for word in list(VIETNAMESE_WORDS)):
                 user_content = f"Using the contents of these pages, summarize and give details about '{query}' in Vietnamese:\n{results_decoded}"
             user_messages = [
                 {
@@ -76,16 +77,20 @@ async def search(event: NewMessage) -> str:
                 continue
             logging.debug("Results derived from duckduckgo")
         except Exception as e:
-            logging.error(f"Error occurred while getting duckduckgo search results: {e}")
+            logging.error(
+                f"Error occurred while getting duckduckgo search results: {e}"
+            )
         break
 
     try:
         await asyncio.sleep(0.5)
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=user_messages)
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo", messages=user_messages
+        )
         response = completion.choices[0].message
         search_object = unidecode(query).lower().replace(" ", "-")
         await asyncio.sleep(0.5)
-        with open(f"log/search_{search_object}.json", "w") as f:
+        with open(f"{LOG_PATH}search_{search_object}.json", "w") as f:
             json.dump(response, f, indent=4)
         file_num, filename, prompt = await task
         await asyncio.sleep(0.5)
@@ -108,35 +113,3 @@ async def search(event: NewMessage) -> str:
     except Exception as e:
         logging.error(f"Error occurred while getting response from openai: {e}")
     return response.content
-
-
-def terminal_html() -> str:
-    return """
-        <html>
-        <head>
-            <title>Terminal</title>
-            <script>
-                function sendCommand() {
-                    const command = document.getElementById("command").value;
-                    fetch("/terminal/run", {
-                        method: "POST",
-                        body: JSON.stringify({command: command}),
-                        headers: {
-                            "Content-Type": "application/json"
-                        }
-                    })
-                    .then(response => response.text())
-                    .then(data => {
-                        document.getElementById("output").innerHTML += data + "<br>";
-                    });
-                    document.getElementById("command").value = "";
-                }
-            </script>
-        </head>
-        <body>
-            <div id="output"></div>
-            <input type="text" id="command" onkeydown="if (event.keyCode == 13) sendCommand()">
-            <button onclick="sendCommand()">Run</button>
-        </body>
-        </html>
-    """

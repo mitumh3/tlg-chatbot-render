@@ -1,7 +1,18 @@
-import openai
-from telethon.events import NewMessage
+import json
+import logging
+import os
+from typing import List, Tuple
 
-from .utils import *
+import openai
+from src.utils import (
+    LOG_PATH,
+    SYS_MESS,
+    Prompt,
+    check_message_before_sending,
+    num_tokens_from_messages,
+    read_existing_conversation,
+)
+from telethon.events import NewMessage
 
 
 async def over_token(
@@ -16,7 +27,7 @@ async def over_token(
             model="gpt-3.5-turbo", messages=prompt
         )
         response = completion.choices[0].message.content
-        data = {"messages": system_message}
+        data = {"messages": SYS_MESS}
         data["messages"].append({"role": "system", "content": response})
         with open(filename, "w") as f:
             json.dump(data, f, indent=4)
@@ -30,9 +41,9 @@ async def start_and_check(
     event: NewMessage, message: str, chat_id: int
 ) -> Tuple[str, Prompt]:
     try:
-        if not os.path.exists(f"log/{chat_id}_session.json"):
+        if not os.path.exists(f"{LOG_PATH}{chat_id}_session.json"):
             data = {"session": 1}
-            with open(f"log/{chat_id}_session.json", "w") as f:
+            with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
                 json.dump(data, f)
         while True:
             file_num, filename, prompt = await read_existing_conversation(chat_id)
@@ -42,7 +53,7 @@ async def start_and_check(
                 logging.warn("Number of tokens exceeds 4096 limit")
                 file_num += 1
                 data = {"session": file_num}
-                with open(f"{chat_id}_session.json", "w") as f:
+                with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
                     json.dump(data, f)
                 await over_token(num_tokens, event, prompt, filename)
                 continue

@@ -10,12 +10,12 @@ The following set of comprehensive instructions will guide you through creating 
 
 To run this project, you will need the following:
 
-- Python (version 3.8 or newer)
 - A Github account (Obviously)
 - An OpenAI API Key
 - Telegram App ID and hash
 - A Telegram Bot token
 - A Render account
+- Python (version 3.8 or newer) - if running in local
 
 ## INSTALLATION
 
@@ -83,7 +83,7 @@ BOTTOKEN=YOUR_BOT_TOKEN
 Run the command below in your terminal to initiate the bot.
 
 ```bash
-uvicorn minnion-bot:app --port=${PORT:-8080}
+uvicorn main:app --port=${PORT:-8080}
 ```
 
 ## FEATURES

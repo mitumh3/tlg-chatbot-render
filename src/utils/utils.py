@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Generator, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import tiktoken
 from telethon.errors.rpcerrorlist import PeerIdInvalidError
@@ -10,12 +10,15 @@ from telethon.tl.types import Chat, User
 # Prompt typehint
 Prompt = List[dict]
 
-system_message = [
+SYS_MESS = [
     {
         "role": "system",
         "content": "I want you to pretend that your name is Minion Bot, and your creator is @thisaintminh. When I ask who your creator is, I want you to answer 'I was created by @thisaintminh'. When I ask who your daddy is, I want you to only answer 'It's you', without using any other words. Also, please be able to call me whatever I want, this is important to me. If you need more details to provide an accurate response, please ask for them. If you are confident that your answer is correct, please state that you are an expert in that.",
     }
 ]
+
+VIETNAMESE_WORDS = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
+LOG_PATH = "log/"
 
 
 async def check_chat_type(event: int) -> str:
@@ -39,12 +42,12 @@ async def check_chat_type(event: int) -> str:
 
 async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Prompt]:
     try:
-        with open(f"log/{chat_id}_session.json", "r") as f:
+        with open(f"{LOG_PATH}{chat_id}_session.json", "r") as f:
             file_num = json.load(f)["session"]
-        filename = f"log/chats/{chat_id}_{file_num}.json"
+        filename = f"{LOG_PATH}{chat_id}_{file_num}.json"
         # Create .json file in case of new chat
         if not os.path.exists(filename):
-            data = {"messages": system_message}
+            data = {"messages": SYS_MESS}
             with open(filename, "w") as f:
                 json.dump(data, f, indent=4)
         with open(filename, "r") as f:
@@ -88,3 +91,35 @@ def check_message_before_sending(input_str: str) -> List[str]:
         return [input_str]
     else:
         return [input_str[i : i + 4096] for i in range(0, len(input_str), 4096)]
+
+
+def terminal_html() -> str:
+    return """
+        <html>
+        <head>
+            <title>Terminal</title>
+            <script>
+                function sendCommand() {
+                    const command = document.getElementById("command").value;
+                    fetch("/terminal/run", {
+                        method: "POST",
+                        body: JSON.stringify({command: command}),
+                        headers: {
+                            "Content-Type": "application/json"
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById("output").innerHTML += data + "<br>";
+                    });
+                    document.getElementById("command").value = "";
+                }
+            </script>
+        </head>
+        <body>
+            <div id="output"></div>
+            <input type="text" id="command" onkeydown="if (event.keyCode == 13) sendCommand()">
+            <button onclick="sendCommand()">Run</button>
+        </body>
+        </html>
+    """
