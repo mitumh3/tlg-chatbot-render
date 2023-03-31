@@ -6,8 +6,7 @@ from typing import List, Tuple
 import openai
 from telethon.events import NewMessage
 
-from src.utils import (LOG_PATH, SYS_MESS, Prompt, check_message_before_sending, num_tokens_from_messages,
-                       read_existing_conversation)
+from src.utils import LOG_PATH, SYS_MESS, Prompt, num_tokens_from_messages, read_existing_conversation, split_text
 
 
 async def over_token(num_tokens: int, event: NewMessage, prompt: Prompt, filename: str) -> None:
@@ -58,15 +57,24 @@ async def get_response(prompt: Prompt, filename: str) -> List[str]:
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=prompt)
         result = completion.choices[0].message
         num_tokens = completion.usage.total_tokens
-        response = f"{result.content}\n\n__({num_tokens} tokens used)__"
-        responses = check_message_before_sending(response)
+        responses = f"{result.content}\n\n__({num_tokens} tokens used)__"
         prompt.append(result)
         data = {"messages": prompt}
         with open(filename, "w") as f:
             json.dump(data, f, indent=4)
-
         logging.debug("Received response from openai")
     except Exception as e:
         responses = ["💩", "OpenAI is being stupid, please try again "]
         logging.error(f"Error occurred while getting response from openai: {e}")
     return responses
+
+
+async def process_and_send_mess(event, text: str, limit=500) -> None:
+    text_lst = text.split("```")
+    cur_limit = limit
+    for idx, text in enumerate(text_lst):
+        print(idx)
+        if idx % 2 == 0:
+            await split_text(event, text, cur_limit)
+        else:
+            await split_text(event, text, cur_limit, "```\n", "\n```")

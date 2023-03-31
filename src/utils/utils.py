@@ -1,7 +1,9 @@
+import asyncio
 import io
 import json
 import logging
 import os
+import re
 from typing import List, Optional, Tuple
 
 import tiktoken
@@ -109,11 +111,34 @@ def num_tokens_from_messages(messages: Prompt, model: Optional[str] = "gpt-3.5-t
         raise NotImplementedError(f"""num_tokens_from_messages() is not presently implemented for model {model}.""")
 
 
-def check_message_before_sending(input_str: str) -> List[str]:
-    if len(input_str) <= 4095:
-        return [input_str]
-    else:
-        return [input_str[i : i + 4096] for i in range(0, len(input_str), 4096)]
+async def split_text(
+    event,
+    text: str,
+    limit=500,
+    prefix: str = "",
+    sulfix: str = "",
+    split_at=(r"\n", r"\s", "."),
+) -> None:
+    split_at = tuple(map(re.compile, split_at))
+    while True:
+        if len(text) <= limit:
+            break
+        for split in split_at:
+            for i in reversed(range(limit)):
+                m = split.match(text, pos=i)
+                if m:
+                    cur_text, new_text = text[: m.end()], text[m.end() :]
+                    await event.client.send_message(event.chat_id, f"{prefix}{cur_text}{sulfix}", background=True)
+                    await asyncio.sleep(1)
+                    text = new_text
+                    break
+            else:
+                continue
+            break
+        else:
+            # Can't find where to split, just return the remaining text and entities
+            break
+    await event.client.send_message(event.chat_id, f"{prefix}{text}{sulfix}", background=True)
 
 
 def terminal_html() -> str:
