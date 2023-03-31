@@ -5,10 +5,14 @@ import logging
 
 import openai
 from duckduckgo_search import ddg
+from src.utils import (
+    LOG_PATH,
+    VIETNAMESE_WORDS,
+    num_tokens_from_messages,
+    read_existing_conversation,
+)
 from telethon.events import NewMessage
 from unidecode import unidecode
-
-from src.utils import LOG_PATH, VIETNAMESE_WORDS, num_tokens_from_messages, read_existing_conversation
 
 # Functions for bot operation
 
@@ -60,10 +64,7 @@ async def search(event: NewMessage) -> str:
         try:
             results = ddg(query, safesearch="Off", max_results=max_results)
             results_decoded = unidecode(str(results)).replace("'", "'")
-            await asyncio.sleep(0.5)
-            user_content = (
-                f"Using the contents of these pages, summarize and give details about '{query}':\n{results_decoded}"
-            )
+            user_content = f"Using the contents of these pages, summarize and give details about '{query}':\n{results_decoded}"
             if any(word in query for word in list(VIETNAMESE_WORDS)):
                 user_content = f"Using the contents of these pages, summarize and give details about '{query}' in Vietnamese:\n{results_decoded}"
             user_messages = [
@@ -79,19 +80,20 @@ async def search(event: NewMessage) -> str:
                 continue
             logging.debug("Results derived from duckduckgo")
         except Exception as e:
-            logging.error(f"Error occurred while getting duckduckgo search results: {e}")
+            logging.error(
+                f"Error occurred while getting duckduckgo search results: {e}"
+            )
         break
 
     try:
-        await asyncio.sleep(0.5)
-        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=user_messages)
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo", messages=user_messages
+        )
         response = completion.choices[0].message
         search_object = unidecode(query).lower().replace(" ", "-")
-        await asyncio.sleep(0.5)
         with open(f"{LOG_PATH}search_{search_object}.json", "w") as f:
             json.dump(response, f, indent=4)
         file_num, filename, prompt = await task
-        await asyncio.sleep(0.5)
         prompt.append(
             {
                 "role": "user",

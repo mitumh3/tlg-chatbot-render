@@ -8,7 +8,17 @@ from typing import List, Optional, Tuple
 
 import tiktoken
 from telethon.errors.rpcerrorlist import PeerIdInvalidError
-from telethon.tl.types import Chat, User
+from telethon.tl.types import (
+    Chat,
+    SendMessageChooseContactAction,
+    SendMessageChooseStickerAction,
+    SendMessageGamePlayAction,
+    SendMessageGeoLocationAction,
+    SendMessageRecordAudioAction,
+    SendMessageRecordRoundAction,
+    SendMessageRecordVideoAction,
+    User,
+)
 
 # Prompt typehint
 Prompt = List[dict]
@@ -30,6 +40,15 @@ SYS_MESS = [
 
 VIETNAMESE_WORDS = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
 LOG_PATH = "log/"
+RANDOM_ACTION = [
+    SendMessageRecordVideoAction(),
+    SendMessageRecordRoundAction(),
+    SendMessageRecordAudioAction(),
+    SendMessageGeoLocationAction(),
+    SendMessageGamePlayAction(),
+    SendMessageChooseStickerAction(),
+    SendMessageChooseContactAction(),
+]
 
 
 def initialize_logging() -> io.StringIO:
@@ -90,7 +109,9 @@ async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Promp
     return file_num, filename, prompt
 
 
-def num_tokens_from_messages(messages: Prompt, model: Optional[str] = "gpt-3.5-turbo") -> int:
+def num_tokens_from_messages(
+    messages: Prompt, model: Optional[str] = "gpt-3.5-turbo"
+) -> int:
     """Returns the number of tokens used by a list of messages."""
     try:
         encoding = tiktoken.encoding_for_model(model)
@@ -108,7 +129,9 @@ def num_tokens_from_messages(messages: Prompt, model: Optional[str] = "gpt-3.5-t
         num_tokens += 2  # every reply is primed with <im_start>assistant
         return num_tokens
     else:
-        raise NotImplementedError(f"""num_tokens_from_messages() is not presently implemented for model {model}.""")
+        raise NotImplementedError(
+            f"""num_tokens_from_messages() is not presently implemented for model {model}."""
+        )
 
 
 async def split_text(
@@ -128,7 +151,9 @@ async def split_text(
                 m = split.match(text, pos=i)
                 if m:
                     cur_text, new_text = text[: m.end()], text[m.end() :]
-                    await event.client.send_message(event.chat_id, f"{prefix}{cur_text}{sulfix}", background=True)
+                    await event.client.send_message(
+                        event.chat_id, f"{prefix}{cur_text}{sulfix}", background=True
+                    )
                     await asyncio.sleep(1)
                     text = new_text
                     break
@@ -138,7 +163,9 @@ async def split_text(
         else:
             # Can't find where to split, just return the remaining text and entities
             break
-    await event.client.send_message(event.chat_id, f"{prefix}{text}{sulfix}", background=True)
+    await event.client.send_message(
+        event.chat_id, f"{prefix}{text}{sulfix}", background=True
+    )
 
 
 def terminal_html() -> str:

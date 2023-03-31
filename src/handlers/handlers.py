@@ -1,13 +1,13 @@
 import asyncio
 import logging
-
-from telethon.events import NewMessage, StopPropagation, register
-from telethon.tl.functions.messages import SetTypingRequest
-from telethon.tl.types import SendMessageChooseStickerAction, SendMessageTypingAction
+import random
 
 from src.functions.additional_func import bash, search
 from src.functions.chat_func import get_response, process_and_send_mess, start_and_check
-from src.utils import check_chat_type
+from src.utils import RANDOM_ACTION, check_chat_type
+from telethon.events import NewMessage, StopPropagation, register
+from telethon.tl.functions.messages import SetTypingRequest
+from telethon.tl.types import SendMessageChooseStickerAction, SendMessageTypingAction
 
 
 @register(NewMessage(pattern="/search"))
@@ -58,17 +58,21 @@ async def user_chat_handler(event: NewMessage) -> None:
         return
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
     filename, prompt = await start_and_check(event, message, chat_id)
-    # Get response from openai and send to chat_id
-    response = await get_response(prompt, filename)
+    loop = asyncio.get_event_loop()
+    future = loop.run_in_executor(None, get_response, prompt, filename)
+    while not future.done():
+        random_choice = random.choice(RANDOM_ACTION)
+        await asyncio.sleep(2)
+        await client(SetTypingRequest(peer=chat_id, action=random_choice))
+    response = await future
+    # # Get response from openai and send to chat_id
+    # response = get_response(prompt, filename)
     try:
         await process_and_send_mess(event, response)
         logging.info(f"Sent message to {chat_id}")
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         await event.reply("**Fail to get response**")
-    await client(SetTypingRequest(peer=chat_id, action=SendMessageChooseStickerAction()))
-    print("Done")
-    await asyncio.sleep(1)
     await client.action(chat_id, "cancel")
 
 
@@ -79,15 +83,19 @@ async def group_chat_handler(event: NewMessage) -> None:
         return
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
     filename, prompt = await start_and_check(event, message, chat_id)
-    # Get response from openai and send to chat_id
-    responses = await get_response(prompt, filename)
+    loop = asyncio.get_event_loop()
+    future = loop.run_in_executor(None, get_response, prompt, filename)
+    while not future.done():
+        random_choice = random.choice(RANDOM_ACTION)
+        await asyncio.sleep(2)
+        await client(SetTypingRequest(peer=chat_id, action=random_choice))
+    response = await future
+    # # Get response from openai and send to chat_id
+    # response = get_response(prompt, filename)
     try:
-        for response in responses:
-            await client.send_message(chat_id, response)
+        await process_and_send_mess(event, response)
         logging.info(f"Sent message to {chat_id}")
     except Exception as e:
         logging.error(f"Error occurred: {e}")
         await event.reply("**Fail to get response**")
-    await client(SetTypingRequest(peer=chat_id, action=SendMessageChooseStickerAction()))
-    await asyncio.sleep(1)
     await client.action(chat_id, "cancel")
