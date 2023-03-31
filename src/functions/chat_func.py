@@ -67,6 +67,6 @@ async def get_response(prompt: Prompt, filename: str) -> List[str]:
 
         logging.debug("Received response from openai")
     except Exception as e:
-        responses = [":imp:", "OpenAI is being stupid, please try again "]
+        responses = ["💩", "OpenAI is being stupid, please try again "]
         logging.error(f"Error occurred while getting response from openai: {e}")
     return responses
