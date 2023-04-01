@@ -59,7 +59,6 @@ async def start_and_check(
                 continue
             else:
                 break
-        prompt.append({"role": "user", "content": message})
         logging.debug(f"Done start and check")
     except Exception as e:
         logging.error(f"Error occurred: {e}")
@@ -89,7 +88,6 @@ async def process_and_send_mess(event, text: str, limit=500) -> None:
     text_lst = text.split("```")
     cur_limit = limit
     for idx, text in enumerate(text_lst):
-        print(idx)
         if idx % 2 == 0:
             await split_text(event, text, cur_limit)
         else:
