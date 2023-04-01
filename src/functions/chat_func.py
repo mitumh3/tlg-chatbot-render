@@ -91,4 +91,4 @@ async def process_and_send_mess(event, text: str, limit=500) -> None:
         if idx % 2 == 0:
             await split_text(event, text, cur_limit)
         else:
-            await split_text(event, text, cur_limit, "```\n", "\n```")
+            await split_text(event, text, 4096, "```\n", "\n```")
