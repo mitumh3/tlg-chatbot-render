@@ -66,7 +66,7 @@ To get the API ID and Hash of your Telegram app (your bot), you need to follow t
 Run the bot in local will required creating an `.env` file with the following contents:
 
 ```python
-OPENAI_KEY_ACCESS="YOUR_OPENAI_API_KEY"
+OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 API_ID="YOUR_TELEGRAM_APP_ID"
 API_HASH="YOUR_TELEGRAM_APP_HASH"
 BOTTOKEN=YOUR_BOT_TOKEN
@@ -121,7 +121,7 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 - Name, Region
 - Runtime: Python
 - Build Command: `pip install -r requirements.txt`
-- Start Command: `uvicorn minnion-bot:app --port=${PORT:-8080}`
+- Start Command: `uvicorn src.main:app --port=${PORT:-8080} --log-config=log/logging.ini`
 - Instance Type: Free
 - Click on Advanced and add the 4 keys as environment variables. Add another variable: `PYTHON_VERSION` with value of `3.10.2` to define the runtime version.
 - Health Check Path: `/health`
@@ -134,7 +134,7 @@ The bot can be deployed freely on <https://render.com> for 24/7 runtime as a web
 
 > Note:
 >
-> - The 4 keys (`OPENAI_KEY_ACCESS`, `BOTTOKEN`, `API_ID`, `API_HASH`) and their values don't need quotes.
+> - The 4 keys (`OPENAI_API_KEY`, `BOTTOKEN`, `API_ID`, `API_HASH`) and their values don't need quotes.
 > - Logs can be found on <https://{your_setup_name}.onrender.com/log> and additional bash command can be executed on <https://{your_setup_name}.onrender.com/terminal>
 > - Deployment will take about 15 minutes to complete, but some problems within the server can happen if we interact with the bots in this period (Usually, the bot will get duplicated responses. In case of private chats, without preceded command in message, the bot will "chat" to itself and create a messy looped conversation that will burn out your credits). Therefore, a total of 30m to 1 hour should be taken to avoid the above problem. Or you can chat in a group with preceded commands.
 
