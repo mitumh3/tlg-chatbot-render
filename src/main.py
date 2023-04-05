@@ -5,25 +5,26 @@ import subprocess
 from typing import Generator
 
 import uvicorn
+from __version__ import __version__
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
-
-from __version__ import __version__
 from src.bot import bot
-from src.utils import create_initial_folders, initialize_logging, terminal_html
+from src.utils import (
+    BOT_NAME,
+    create_initial_folders,
+    initialize_logging,
+    terminal_html,
+)
 
 # Initialize
 console_out = initialize_logging()
 create_initial_folders()
 
-# Bot name
-BOT_NAME = "MINNION"
-
 # Bot version
 try:
     BOT_VERSION = __version__
 except:
-    BOT_VERSION = "v1.0.0"
+    BOT_VERSION = "with unknown version"
 
 
 # API and app handling
@@ -71,7 +72,9 @@ async def terminal(request: Request) -> Response:
 @app.post("/terminal/run")
 async def run_command(command: dict) -> str:
     try:
-        output_bytes = subprocess.check_output(command["command"], shell=True, stderr=subprocess.STDOUT)
+        output_bytes = subprocess.check_output(
+            command["command"], shell=True, stderr=subprocess.STDOUT
+        )
         output_str = output_bytes.decode("utf-8")
         # Split output into lines and remove any leading/trailing whitespace
         output_lines = [line.strip() for line in output_str.split("\n")]

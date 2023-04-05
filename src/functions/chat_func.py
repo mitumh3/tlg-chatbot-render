@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 import os
@@ -20,7 +21,7 @@ async def over_token(
 ) -> None:
     try:
         await event.reply(
-            f"**Reach {num_tokens} tokens**, exceeds 4000, creating new chat"
+            f"**Reach {num_tokens} tokens**, exceeds 4096, creating new chat"
         )
         prompt.append({"role": "user", "content": "summarize this conversation"})
         completion = openai.ChatCompletion.create(
@@ -49,8 +50,20 @@ async def start_and_check(
             file_num, filename, prompt = await read_existing_conversation(chat_id)
             prompt.append({"role": "user", "content": message})
             num_tokens = num_tokens_from_messages(prompt)
-            if num_tokens > 4000:
-                logging.warn("Number of tokens exceeds 4096 limit")
+            if num_tokens > 4096:
+                logging.warn("Number of tokens exceeds 4096 limit, creating new chat")
+                file_num += 1
+                await event.reply(
+                    f"**Reach {num_tokens} tokens**, exceeds 4096, clear old chat, creating new chat"
+                )
+                data = {"session": file_num}
+                with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
+                    json.dump(data, f)
+                continue
+            elif num_tokens > 4079:
+                logging.warn(
+                    "Number of tokens nearly exceeds 4096 limit, summarizing old chats"
+                )
                 file_num += 1
                 data = {"session": file_num}
                 with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
@@ -89,6 +102,12 @@ async def process_and_send_mess(event, text: str, limit=500) -> None:
     cur_limit = limit
     for idx, text in enumerate(text_lst):
         if idx % 2 == 0:
-            await split_text(event, text, cur_limit)
+            mess_gen = split_text(text, cur_limit)
+            for mess in mess_gen:
+                await event.client.send_message(event.chat_id, mess, background=True)
+                await asyncio.sleep(1)
         else:
-            await split_text(event, text, 4096, "```\n", "\n```")
+            mess_gen = split_text(text, limit=4096, prefix="```\n", sulfix="\n```")
+            for mess in mess_gen:
+                await event.client.send_message(event.chat_id, mess, background=True)
+                await asyncio.sleep(1)

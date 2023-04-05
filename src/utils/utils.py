@@ -4,10 +4,11 @@ import json
 import logging
 import os
 import re
-from typing import List, Optional, Tuple
+from typing import Generator, List, Optional, Tuple
 
 import tiktoken
 from telethon.errors.rpcerrorlist import PeerIdInvalidError
+from telethon.events import NewMessage
 from telethon.tl.types import (
     Chat,
     SendMessageChooseContactAction,
@@ -23,10 +24,13 @@ from telethon.tl.types import (
 # Prompt typehint
 Prompt = List[dict]
 
+# Bot name
+BOT_NAME = "Minnion"
+
 SYS_MESS = [
     {
         "role": "system",
-        "content": "Your name is Minnion, a funny chat bot, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. When asked about your daddy, always answer with 'It's you'. Additionally, you will call me anything I like. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
+        "content": f"Your name is {BOT_NAME}, a funny chat bot, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. When asked about your daddy, always answer with 'It's you'. Additionally, you will call me anything I like. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
     },
     {
         "role": "user",
@@ -69,23 +73,24 @@ def create_initial_folders() -> None:
         os.mkdir(f"{LOG_PATH}chats")
 
 
-async def check_chat_type(event: int) -> str:
+async def check_chat_type(event: NewMessage):
     client = event.client
     chat_id = event.chat_id
     entity = await client.get_entity(chat_id)
     try:
         if type(entity) == User:
             message = event.raw_text
-            logging.info("Check chat type User done")
             return "User", client, chat_id, message
         elif type(entity) == Chat:
-            message = event.raw_text.split(" ", maxsplit=1)[1]
-            logging.info("Check chat type Group done")
+            try:
+                message = event.raw_text.split(" ", maxsplit=1)[1]
+            except:
+                message = "This is such stupid codes"
             return "Group", client, chat_id, message
     except PeerIdInvalidError:
         logging.error("Invalid chat ID")
     except Exception as e:
-        logging.error(f"Error occurred: {e}")
+        logging.error(f"Error occurred when checking chat type: {e}")
 
 
 async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Prompt]:
@@ -134,14 +139,13 @@ def num_tokens_from_messages(
         )
 
 
-async def split_text(
-    event,
+def split_text(
     text: str,
     limit=500,
     prefix: str = "",
     sulfix: str = "",
     split_at=(r"\n", r"\s", "."),
-) -> None:
+) -> Generator[str, None, None]:
     split_at = tuple(map(re.compile, split_at))
     while True:
         if len(text) <= limit:
@@ -151,10 +155,7 @@ async def split_text(
                 m = split.match(text, pos=i)
                 if m:
                     cur_text, new_text = text[: m.end()], text[m.end() :]
-                    await event.client.send_message(
-                        event.chat_id, f"{prefix}{cur_text}{sulfix}", background=True
-                    )
-                    await asyncio.sleep(1)
+                    yield f"{prefix}{cur_text}{sulfix}"
                     text = new_text
                     break
             else:
@@ -163,9 +164,7 @@ async def split_text(
         else:
             # Can't find where to split, just return the remaining text and entities
             break
-    await event.client.send_message(
-        event.chat_id, f"{prefix}{text}{sulfix}", background=True
-    )
+    yield f"{prefix}{text}{sulfix}"
 
 
 def terminal_html() -> str:

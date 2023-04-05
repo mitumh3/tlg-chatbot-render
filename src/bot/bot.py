@@ -21,16 +21,16 @@ def load_keys() -> Tuple[str, int, str]:
     openai.api_key = os.getenv("OPENAI_API_KEY")
     api_id = os.getenv("API_ID")
     api_hash = os.getenv("API_HASH")
-    botToken = os.getenv("BOTTOKEN")
-    return api_id, api_hash, botToken
+    bot_token = os.getenv("BOTTOKEN")
+    return api_id, api_hash, bot_token
 
 
 async def bot() -> None:
     while True:
-        api_id, api_hash, botToken = load_keys()
+        api_id, api_hash, bot_token = load_keys()
         try:
             client = await TelegramClient(None, api_id, api_hash).start(
-                bot_token=botToken
+                bot_token=bot_token
             )
             logging.info("Successfully initiate bot")
         except UnauthorizedError:
@@ -50,8 +50,8 @@ async def bot() -> None:
         client.add_event_handler(clear_handler)
 
         # User and group chat
-        client.add_event_handler(user_chat_handler)
         client.add_event_handler(group_chat_handler)
+        client.add_event_handler(user_chat_handler)
 
         print("Bot is running")
         await client.run_until_disconnected()
