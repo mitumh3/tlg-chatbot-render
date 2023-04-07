@@ -41,7 +41,7 @@ async def bash_handler(event: NewMessage) -> None:
 @register(NewMessage(pattern="/clear"))
 async def clear_handler(event: NewMessage) -> None:
     client = event.client
-    event.text = "/bash rm log/chats/*"
+    event.text = f"/bash rm log/chats/{event.chat_id}*"
     response = await bash(event)
     try:
         await client.send_message(event.chat_id, f"{response}")

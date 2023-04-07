@@ -99,15 +99,19 @@ def get_response(prompt: Prompt, filename: str) -> List[str]:
 
 async def process_and_send_mess(event, text: str, limit=500) -> None:
     text_lst = text.split("```")
-    cur_limit = limit
+    cur_limit = 4096
     for idx, text in enumerate(text_lst):
         if idx % 2 == 0:
             mess_gen = split_text(text, cur_limit)
             for mess in mess_gen:
-                await event.client.send_message(event.chat_id, mess, background=True)
+                await event.client.send_message(
+                    event.chat_id, mess, background=True, silent=True
+                )
                 await asyncio.sleep(1)
         else:
-            mess_gen = split_text(text, limit=4096, prefix="```\n", sulfix="\n```")
+            mess_gen = split_text(text, cur_limit, prefix="```\n", sulfix="\n```")
             for mess in mess_gen:
-                await event.client.send_message(event.chat_id, mess, background=True)
+                await event.client.send_message(
+                    event.chat_id, mess, background=True, silent=True
+                )
                 await asyncio.sleep(1)
