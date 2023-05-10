@@ -58,7 +58,7 @@ async def senpai_chat_handler(event: NewMessage) -> None:
     chat_type, client, chat_id, message = await check_chat_type(event)
     if chat_type == "User":
         message = message.split(" ", maxsplit=1)[1]
-    logging.info("Check chat type User done")
+    logging.info(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
     src.utils.utils.SYS_MESS = SYS_MESS_SENPAI  # Overwrite system mess
 
@@ -92,7 +92,7 @@ async def user_chat_handler(event: NewMessage) -> None:
     if chat_type != "User":
         return
     else:
-        logging.info("Check chat type User done")
+        logging.info(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
 
     # Inialize
@@ -125,7 +125,7 @@ async def group_chat_handler(event: NewMessage) -> None:
     if chat_type != "Group":
         return
     else:
-        logging.info("Check chat type Group done")
+        logging.info(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
 
     # Inialize
