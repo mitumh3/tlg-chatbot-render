@@ -63,7 +63,7 @@ def root() -> str:
     return f"{BOT_NAME} {BOT_VERSION} is online on port {PORT} ({time_string})"
 
 
-@app.get("/health")
+@app.get("/health", host=HOST, port=PORT)
 def health_check() -> str:
     return f"{BOT_NAME} {BOT_VERSION} health check"
 
