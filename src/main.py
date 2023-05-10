@@ -8,7 +8,7 @@ from typing import Generator
 import pytz
 import uvicorn
 from __version__ import __version__
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, status
 from fastapi.responses import HTMLResponse, StreamingResponse
 from src.bot import bot
 from src.utils import (
@@ -63,7 +63,7 @@ async def root() -> str:
     return f"{BOT_NAME} {BOT_VERSION} is online on port {PORT} ({time_string})"
 
 
-@app.get("/health")
+@app.get("/health", status_code=status.HTTP_200_OK)
 async def health_check() -> str:
     return f"{BOT_NAME} {BOT_VERSION} health check"
 
