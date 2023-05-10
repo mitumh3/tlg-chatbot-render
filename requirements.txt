@@ -6,3 +6,4 @@ python-dotenv
 duckduckgo_search
 unidecode
 tiktoken
+pytz

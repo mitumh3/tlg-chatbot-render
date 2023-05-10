@@ -2,8 +2,10 @@ import asyncio
 import logging
 import os
 import subprocess
+from datetime import datetime
 from typing import Generator
 
+import pytz
 import uvicorn
 from __version__ import __version__
 from fastapi import FastAPI, Request, Response
@@ -50,7 +52,15 @@ def startup_event() -> None:
 
 @app.get("/")
 def root() -> str:
-    return f"{BOT_NAME} {BOT_VERSION} is online on port {PORT}"
+    # Get the current time in UTC
+    current_time = datetime.utcnow()
+    # Set the timezone to UTC+7
+    tz = pytz.timezone("Asia/Bangkok")
+    # Convert the current time to UTC+7
+    current_time = tz.localize(current_time)
+    # Format the time string
+    time_string = current_time.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+    return f"{BOT_NAME} {BOT_VERSION} is online on port {PORT} ({time_string})"
 
 
 @app.get(f":{PORT}/health")
