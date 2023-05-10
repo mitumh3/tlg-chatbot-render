@@ -2,9 +2,10 @@ import asyncio
 import logging
 import random
 
+import src.utils.utils
 from src.functions.additional_func import bash, search
 from src.functions.chat_func import get_response, process_and_send_mess, start_and_check
-from src.utils import RANDOM_ACTION, check_chat_type
+from src.utils import RANDOM_ACTION, SYS_MESS_SENPAI, check_chat_type
 from telethon.events import NewMessage, StopPropagation, register
 from telethon.tl.functions.messages import SetTypingRequest
 from telethon.tl.types import SendMessageTypingAction
@@ -51,56 +52,100 @@ async def clear_handler(event: NewMessage) -> None:
     raise StopPropagation
 
 
+@register(NewMessage(pattern="/senpai"))
+async def senpai_chat_handler(event: NewMessage) -> None:
+    # Get info
+    chat_type, client, chat_id, message = await check_chat_type(event)
+    if chat_type == "User":
+        message = message.split(" ", maxsplit=1)[1]
+    logging.info("Check chat type User done")
+    await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+    src.utils.utils.SYS_MESS = SYS_MESS_SENPAI  # Overwrite system mess
+
+    # Inialize
+    filename, prompt = await start_and_check(event, message, chat_id)
+    loop = asyncio.get_event_loop()
+
+    # Get response from openAI
+    future = loop.run_in_executor(None, get_response, prompt, filename)
+    while not future.done():  # Loop of random actions indicates running process
+        random_choice = random.choice(RANDOM_ACTION)
+        await asyncio.sleep(2)
+        await client(SetTypingRequest(peer=chat_id, action=random_choice))
+    response = await future
+
+    # Send response to chat id
+    try:
+        await process_and_send_mess(event, response)
+        logging.info(f"Sent message to {chat_id}")
+    except Exception as e:
+        logging.error(f"Error occurred when handling {chat_type} chat: {e}")
+        await event.reply("**Fail to get response**")
+    await client.action(chat_id, "cancel")
+    raise StopPropagation
+
+
 @register(NewMessage)
 async def user_chat_handler(event: NewMessage) -> None:
+    # Get info
     chat_type, client, chat_id, message = await check_chat_type(event)
     if chat_type != "User":
         return
     else:
         logging.info("Check chat type User done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+
+    # Inialize
     filename, prompt = await start_and_check(event, message, chat_id)
     loop = asyncio.get_event_loop()
+
+    # Get response from openAI
     future = loop.run_in_executor(None, get_response, prompt, filename)
-    while not future.done():
+    while not future.done():  # Loop of random actions indicates running process
         random_choice = random.choice(RANDOM_ACTION)
         await asyncio.sleep(2)
         await client(SetTypingRequest(peer=chat_id, action=random_choice))
     response = await future
-    # # Get response from openai and send to chat_id
-    # response = get_response(prompt, filename)
+
+    # Send response to chat id
     try:
         await process_and_send_mess(event, response)
         logging.info(f"Sent message to {chat_id}")
     except Exception as e:
-        logging.error(f"Error occurred when handling user chat: {e}")
+        logging.error(f"Error occurred when handling {chat_type} chat: {e}")
         await event.reply("**Fail to get response**")
     await client.action(chat_id, "cancel")
+    raise StopPropagation
 
 
 @register(NewMessage(pattern="/slave"))
 async def group_chat_handler(event: NewMessage) -> None:
+    # Get info
     chat_type, client, chat_id, message = await check_chat_type(event)
     if chat_type != "Group":
         return
     else:
         logging.info("Check chat type Group done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+
+    # Inialize
     filename, prompt = await start_and_check(event, message, chat_id)
     loop = asyncio.get_event_loop()
+
+    # Get response from openAI
     future = loop.run_in_executor(None, get_response, prompt, filename)
-    while not future.done():
+    while not future.done():  # Loop of random actions indicates running process
         random_choice = random.choice(RANDOM_ACTION)
         await asyncio.sleep(2)
         await client(SetTypingRequest(peer=chat_id, action=random_choice))
     response = await future
-    # # Get response from openai and send to chat_id
-    # response = get_response(prompt, filename)
+
+    # Send response to chat id
     try:
         await process_and_send_mess(event, response)
         logging.info(f"Sent message to {chat_id}")
     except Exception as e:
-        logging.error(f"Error occurred when handling group chat: {e}")
+        logging.error(f"Error occurred when handling {chat_type} chat: {e}")
         await event.reply("**Fail to get response**")
     await client.action(chat_id, "cancel")
     raise StopPropagation

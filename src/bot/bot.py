@@ -9,6 +9,7 @@ from src.handlers import (
     clear_handler,
     group_chat_handler,
     search_handler,
+    senpai_chat_handler,
     user_chat_handler,
 )
 from telethon import TelegramClient
@@ -50,6 +51,7 @@ async def bot() -> None:
         client.add_event_handler(clear_handler)
 
         # User and group chat
+        client.add_event_handler(senpai_chat_handler)
         client.add_event_handler(group_chat_handler)
         client.add_event_handler(user_chat_handler)
 

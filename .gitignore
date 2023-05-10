@@ -5,6 +5,6 @@ env/*
 .env
 **/*.log
 **/*.json
-**/test.*
+**/test*
 **/chats
 **/Makefile

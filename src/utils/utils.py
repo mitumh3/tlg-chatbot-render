@@ -42,6 +42,13 @@ SYS_MESS = [
     },
 ]
 
+SYS_MESS_SENPAI = [
+    {
+        "role": "system",
+        "content": f"Your name is {BOT_NAME}, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. You must be professional. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
+    },
+]
+
 VIETNAMESE_WORDS = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
 LOG_PATH = "log/"
 RANDOM_ACTION = [
@@ -103,6 +110,7 @@ async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Promp
             data = {"messages": SYS_MESS}
             with open(filename, "w") as f:
                 json.dump(data, f, indent=4)
+        # Load existing chats
         with open(filename, "r") as f:
             data = json.load(f)
         prompt = []

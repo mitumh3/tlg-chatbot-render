@@ -5,9 +5,11 @@ import os
 from typing import List, Tuple
 
 import openai
+import src.utils.utils
 from src.utils import (
     LOG_PATH,
     SYS_MESS,
+    SYS_MESS_SENPAI,
     Prompt,
     num_tokens_from_messages,
     read_existing_conversation,
@@ -50,7 +52,7 @@ async def start_and_check(
             file_num, filename, prompt = await read_existing_conversation(chat_id)
             prompt.append({"role": "user", "content": message})
             num_tokens = num_tokens_from_messages(prompt)
-            if num_tokens > 4096:
+            if num_tokens > 4096:  # Cant summarize old chats
                 logging.warn("Number of tokens exceeds 4096 limit, creating new chat")
                 file_num += 1
                 await event.reply(
@@ -60,7 +62,7 @@ async def start_and_check(
                 with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
                     json.dump(data, f)
                 continue
-            elif num_tokens > 4079:
+            elif num_tokens > 4079:  # Summarize old chats
                 logging.warn(
                     "Number of tokens nearly exceeds 4096 limit, summarizing old chats"
                 )
