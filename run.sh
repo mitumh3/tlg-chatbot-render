@@ -1,1 +1,1 @@
-uvicorn src.main:app --port=${PORT:-8080}
+uvicorn src.main:app --log-config=log/logging.ini

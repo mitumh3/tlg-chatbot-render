@@ -89,7 +89,7 @@ async def senpai_chat_handler(event: NewMessage) -> None:
 async def user_chat_handler(event: NewMessage) -> None:
     # Get info
     chat_type, client, chat_id, message = await check_chat_type(event)
-    if chat_type != "User":
+    if chat_type != "User":  # Prevent no command group chat
         return
     else:
         logging.info(f"Check chat type {chat_type} done")

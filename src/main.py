@@ -26,6 +26,9 @@ try:
 except:
     BOT_VERSION = "with unknown version"
 
+# Host and port
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", 8080))
 
 # API and app handling
 app = FastAPI(
@@ -47,12 +50,12 @@ def startup_event() -> None:
 
 @app.get("/")
 def root() -> str:
-    return f"{BOT_NAME} {BOT_VERSION} is online"
+    return f"{BOT_NAME} {BOT_VERSION} is online on port {PORT}"
 
 
-@app.get("/health")
+@app.get(f":{PORT}/health")
 def health_check() -> str:
-    return f"{BOT_NAME} {BOT_VERSION} is online"
+    return f"{BOT_NAME} {BOT_VERSION} health check"
 
 
 @app.get("/log")
@@ -87,6 +90,4 @@ async def run_command(command: dict) -> str:
 
 # Minnion run
 if __name__ == "__main__":
-    HOST = os.getenv("HOST", "0.0.0.0")
-    PORT = os.getenv("PORT", 8080)
     uvicorn.run(app, host=HOST, port=PORT)
