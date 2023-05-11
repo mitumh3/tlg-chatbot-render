@@ -31,6 +31,7 @@ except:
 # Host and port
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", 8080))
+print(HOST, PORT)
 
 # API and app handling
 app = FastAPI(
