@@ -28,12 +28,6 @@ try:
 except:
     BOT_VERSION = "with unknown version"
 
-# Host and port
-HOST = os.getenv("HOST", "0.0.0.0")
-# PORT = 10000
-PORT = int(os.getenv("PORT", 8080))
-print(HOST, PORT)
-
 # API and app handling
 app = FastAPI(
     title=BOT_NAME,
