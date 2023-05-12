@@ -43,17 +43,23 @@ async def bot() -> None:
 
         # Search feature
         client.add_event_handler(search_handler)
+        logging.debug("Search handler added")
 
         # Terminal bash feature
         client.add_event_handler(bash_handler)
+        logging.debug("Bash handler added")
 
         # Clear chat history feature
         client.add_event_handler(clear_handler)
+        logging.debug("Clear handler added")
 
         # User and group chat
         client.add_event_handler(senpai_chat_handler)
+        logging.debug("Senpai chat handler added")
         client.add_event_handler(group_chat_handler)
+        logging.debug("Group chat handler added")
         client.add_event_handler(user_chat_handler)
+        logging.debug("User chat handler added")
 
         print("Bot is running")
         await client.run_until_disconnected()
