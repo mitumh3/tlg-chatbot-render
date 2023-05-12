@@ -47,6 +47,7 @@ def startup_event() -> None:
         task = loop.create_task(bot())
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)
+        logging.debug("App initiated")
     except Exception as e:
         logging.critical(f"Error occurred while starting up app: {e}")
 
