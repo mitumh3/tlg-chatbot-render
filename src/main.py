@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import subprocess
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Generator
 
@@ -28,14 +29,9 @@ try:
 except:
     BOT_VERSION = "with unknown version"
 
-# API and app handling
-app = FastAPI(
-    title=BOT_NAME,
-)
 
-
-@app.on_event("startup")
-def startup_event() -> None:
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     try:
         loop = asyncio.get_event_loop()
         background_tasks = set()
@@ -46,10 +42,34 @@ def startup_event() -> None:
     except Exception as e:
         logging.critical(f"Error occurred while starting up app: {e}")
         raise e
+    yield
+    logging.info("Application close...")
+
+
+# API and app handling
+app = FastAPI(lifespan=lifespan, title=BOT_NAME)
+
+# app = FastAPI(
+#     title=BOT_NAME,
+# )
+
+
+# @app.on_event("startup")
+# def startup_event() -> None:
+#     try:
+#         loop = asyncio.get_event_loop()
+#         background_tasks = set()
+#         task = loop.create_task(bot())
+#         background_tasks.add(task)
+#         task.add_done_callback(background_tasks.discard)
+#         logging.debug("App initiated")
+#     except Exception as e:
+#         logging.critical(f"Error occurred while starting up app: {e}")
+#         raise e
 
 
 @app.get("/")
-def root() -> str:
+async def root() -> str:
     # Get the current time in UTC
     current_time = datetime.utcnow()
     # Set the timezone to UTC+7
@@ -62,12 +82,12 @@ def root() -> str:
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
-def health_check() -> str:
+async def health_check() -> str:
     return f"{BOT_NAME} {BOT_VERSION} health check"
 
 
 @app.get("/log")
-def log_check() -> StreamingResponse:
+async def log_check() -> StreamingResponse:
     async def generate_log() -> Generator[bytes, None, None]:
         console_log = console_out.getvalue()
         yield f"{console_log}".encode("utf-8")
@@ -76,12 +96,12 @@ def log_check() -> StreamingResponse:
 
 
 @app.get("/terminal", response_class=HTMLResponse)
-def terminal(request: Request) -> Response:
+async def terminal(request: Request) -> Response:
     return Response(content=terminal_html(), media_type="text/html")
 
 
 @app.post("/terminal/run")
-def run_command(command: dict) -> str:
+async def run_command(command: dict) -> str:
     try:
         output_bytes = subprocess.check_output(
             command["command"], shell=True, stderr=subprocess.STDOUT

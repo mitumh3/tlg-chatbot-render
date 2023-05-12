@@ -38,8 +38,10 @@ async def bot() -> None:
             logging.error(
                 "Unauthorized access. Please check your Telethon API ID, API hash"
             )
+            raise UnauthorizedError
         except Exception as e:
             logging.error(f"Error occurred: {e}")
+            raise e
 
         # Search feature
         client.add_event_handler(search_handler)
