@@ -71,7 +71,7 @@ def health_check() -> str:
 
 
 @app.get("/log")
-async def log_check() -> StreamingResponse:
+def log_check() -> StreamingResponse:
     async def generate_log() -> Generator[bytes, None, None]:
         console_log = console_out.getvalue()
         yield f"{console_log}".encode("utf-8")
@@ -80,12 +80,12 @@ async def log_check() -> StreamingResponse:
 
 
 @app.get("/terminal", response_class=HTMLResponse)
-async def terminal(request: Request) -> Response:
+def terminal(request: Request) -> Response:
     return Response(content=terminal_html(), media_type="text/html")
 
 
 @app.post("/terminal/run")
-async def run_command(command: dict) -> str:
+def run_command(command: dict) -> str:
     try:
         output_bytes = subprocess.check_output(
             command["command"], shell=True, stderr=subprocess.STDOUT
