@@ -53,7 +53,7 @@ def startup_event() -> None:
 
 
 @app.get("/")
-async def root() -> str:
+def root() -> str:
     # Get the current time in UTC
     current_time = datetime.utcnow()
     # Set the timezone to UTC+7
@@ -66,7 +66,7 @@ async def root() -> str:
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
-async def health_check() -> str:
+def health_check() -> str:
     return f"{BOT_NAME} {BOT_VERSION} health check"
 
 
