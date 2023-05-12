@@ -45,6 +45,7 @@ def startup_event() -> None:
         logging.debug("App initiated")
     except Exception as e:
         logging.critical(f"Error occurred while starting up app: {e}")
+        raise e
 
 
 @app.get("/")
@@ -57,7 +58,7 @@ def root() -> str:
     current_time = tz.localize(current_time)
     # Format the time string
     time_string = current_time.strftime("%Y-%m-%d %H:%M:%S %Z%z")
-    return f"{BOT_NAME} {BOT_VERSION} is online on port {PORT} ({time_string})"
+    return f"{BOT_NAME} {BOT_VERSION} is online ({time_string})"
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)
