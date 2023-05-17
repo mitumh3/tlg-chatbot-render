@@ -5,7 +5,9 @@ from typing import Tuple
 import openai
 from dotenv import load_dotenv
 from src.handlers import (
+    bard_chat_handler,
     bash_handler,
+    bing_chat_handler,
     clear_handler,
     group_chat_handler,
     search_handler,
@@ -56,6 +58,10 @@ async def bot() -> None:
         logging.debug("Clear handler added")
 
         # User and group chat
+        client.add_event_handler(bard_chat_handler)
+        logging.debug("Bard chat handler added")
+        client.add_event_handler(bing_chat_handler)
+        logging.debug("Bing chat handler added")
         client.add_event_handler(senpai_chat_handler)
         logging.debug("Senpai chat handler added")
         client.add_event_handler(group_chat_handler)

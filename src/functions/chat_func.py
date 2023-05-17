@@ -4,8 +4,9 @@ import logging
 import os
 from typing import List, Tuple
 
+import bardapi
 import openai
-import src.utils.utils
+from EdgeGPT import Chatbot
 from src.utils import (
     LOG_PATH,
     SYS_MESS,
@@ -80,7 +81,7 @@ async def start_and_check(
     return filename, prompt
 
 
-def get_response(prompt: Prompt, filename: str) -> List[str]:
+def get_openai_response(prompt: Prompt, filename: str) -> List[str]:
     try:
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo", messages=prompt
@@ -97,6 +98,38 @@ def get_response(prompt: Prompt, filename: str) -> List[str]:
         responses = "💩 OpenAI is being stupid, please try again "
         logging.error(f"Error occurred while getting response from openai: {e}")
     return responses
+
+
+def get_bard_response(input_text: str) -> List[str]:
+    try:
+        # Send an API request and get a response.
+        responses = bardapi.core.Bard().get_answer(input_text)["content"]
+        logging.debug("Received response from bard")
+    except Exception as e:
+        responses = "💩 Bard is being stupid, please try again "
+        logging.error(f"Error occurred while getting response from bard: {e}")
+    return responses
+
+
+def get_bing_response(input_text):
+    try:
+        COOKIE_PATH = os.getenv("COOKIE_PATH")
+        response_dict = asyncio.run(
+            Chatbot(cookie_path=f"{COOKIE_PATH}cookies.json").ask(
+                prompt=input_text, conversation_style="creative"
+            )
+        )
+        responses = response_dict["item"]["messages"][1]["text"]
+        suggest_lst = [
+            x["text"]
+            for x in response_dict["item"]["messages"][1]["suggestedResponses"]
+        ]
+        logging.debug("Received response from bing")
+    except Exception as e:
+        responses = "💩 Bing is being stupid, please try again "
+        suggest_lst = []
+        logging.error(f"Error occurred while getting response from bing: {e}")
+    return responses, suggest_lst
 
 
 async def process_and_send_mess(event, text: str, limit=500) -> None:

@@ -3,7 +3,7 @@ venv/*
 env/*
 **/__pycache__
 .env
-**/*.log
+**/*.log*
 **/*.json
 **/test*
 **/chats
