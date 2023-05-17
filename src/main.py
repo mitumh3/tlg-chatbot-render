@@ -1,12 +1,9 @@
 import asyncio
 import logging
-import os
 import subprocess
 from contextlib import asynccontextmanager
-from datetime import datetime
 from typing import Generator
 
-import pytz
 import uvicorn
 from __version__ import __version__
 from fastapi import FastAPI, Request, Response, status
@@ -14,14 +11,17 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from src.bot import bot
 from src.utils import (
     BOT_NAME,
+    LOG_PATH,
     create_initial_folders,
+    get_date_time,
     initialize_logging,
     terminal_html,
 )
 
 # Initialize
-console_out = initialize_logging()
 create_initial_folders()
+console_out = initialize_logging()
+time_str = get_date_time("Asia/Ho_Chi_Minh")
 
 # Bot version
 try:
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
         task = loop.create_task(bot())
         background_tasks.add(task)
         task.add_done_callback(background_tasks.discard)
-        logging.debug("App initiated")
+        logging.info("App initiated")
     except Exception as e:
         logging.critical(f"Error occurred while starting up app: {e}")
         raise e
@@ -49,36 +49,10 @@ async def lifespan(app: FastAPI):
 # API and app handling
 app = FastAPI(lifespan=lifespan, title=BOT_NAME)
 
-# app = FastAPI(
-#     title=BOT_NAME,
-# )
-
-
-# @app.on_event("startup")
-# def startup_event() -> None:
-#     try:
-#         loop = asyncio.get_event_loop()
-#         background_tasks = set()
-#         task = loop.create_task(bot())
-#         background_tasks.add(task)
-#         task.add_done_callback(background_tasks.discard)
-#         logging.debug("App initiated")
-#     except Exception as e:
-#         logging.critical(f"Error occurred while starting up app: {e}")
-#         raise e
-
 
 @app.get("/")
 async def root() -> str:
-    # Get the current time in UTC
-    current_time = datetime.utcnow()
-    # Set the timezone to UTC+7
-    tz = pytz.timezone("Asia/Bangkok")
-    # Convert the current time to UTC+7
-    current_time = tz.localize(current_time)
-    # Format the time string
-    time_string = current_time.strftime("%Y-%m-%d %H:%M:%S %Z%z")
-    return f"{BOT_NAME} {BOT_VERSION} is online ({time_string})"
+    return f"{BOT_NAME} {BOT_VERSION} is deployed on ({time_str})"
 
 
 @app.get("/health", status_code=status.HTTP_200_OK)

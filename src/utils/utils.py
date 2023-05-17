@@ -1,11 +1,13 @@
-import asyncio
 import io
 import json
 import logging
 import os
 import re
+from datetime import datetime
 from typing import Generator, List, Optional, Tuple
 
+import coloredlogs
+import pytz
 import tiktoken
 from telethon.errors.rpcerrorlist import PeerIdInvalidError
 from telethon.events import NewMessage
@@ -50,7 +52,7 @@ SYS_MESS_SENPAI = [
 ]
 
 VIETNAMESE_WORDS = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
-LOG_PATH = "log/"
+LOG_PATH = "logs/"
 RANDOM_ACTION = [
     SendMessageRecordVideoAction(),
     SendMessageRecordRoundAction(),
@@ -63,21 +65,37 @@ RANDOM_ACTION = [
 
 
 def initialize_logging() -> io.StringIO:
-    # Load the logging configuration file
-    logging.config.fileConfig(f"{LOG_PATH}logging.ini")
-    # Set the log level to INFO
-    logging.getLogger("appLogger")
+    coloredlogs.install()
+    logging.getLogger("uvicorn.access").setLevel(logging.DEBUG)
     # Create a StringIO object to capture log messages sent to the console
     console_out = io.StringIO()
+
+    # Get app handler from root logger
+    console_handler = logging.getLogger("root").handlers[0]
+
     # Set the stream of the console handler to the StringIO object
-    console_handler = logging.getLogger("appLogger").handlers[0]
     console_handler.stream = console_out
+
     return console_out
 
 
 def create_initial_folders() -> None:
     if not os.path.exists(f"{LOG_PATH}chats"):
         os.mkdir(f"{LOG_PATH}chats")
+    if not os.path.exists(f"{LOG_PATH}chats/history"):
+        os.mkdir(f"{LOG_PATH}chats/history")
+    if not os.path.exists(f"{LOG_PATH}chats/session"):
+        os.mkdir(f"{LOG_PATH}chats/session")
+
+
+def get_date_time(zone):
+    # Set the timezone to Vietnam Standard Time (UTC+7)
+    timezone = pytz.timezone(zone)
+    # Get the current time in Vietnam
+    time = datetime.now(timezone)
+    # Format the time as a string (optional)
+    time_str = time.strftime("%Y-%m-%d %H:%M:%S %Z%z")
+    return time_str
 
 
 async def check_chat_type(event: NewMessage):
@@ -102,9 +120,9 @@ async def check_chat_type(event: NewMessage):
 
 async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Prompt]:
     try:
-        with open(f"{LOG_PATH}{chat_id}_session.json", "r") as f:
+        with open(f"{LOG_PATH}chats/session/{chat_id}.json", "r") as f:
             file_num = json.load(f)["session"]
-        filename = f"{LOG_PATH}chats/{chat_id}_{file_num}.json"
+        filename = f"{LOG_PATH}chats/history/{chat_id}_{file_num}.json"
         # Create .json file in case of new chat
         if not os.path.exists(filename):
             data = {"messages": SYS_MESS}

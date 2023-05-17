@@ -44,9 +44,9 @@ async def start_and_check(
     event: NewMessage, message: str, chat_id: int
 ) -> Tuple[str, Prompt]:
     try:
-        if not os.path.exists(f"{LOG_PATH}{chat_id}_session.json"):
+        if not os.path.exists(f"{LOG_PATH}chats/session/{chat_id}.json"):
             data = {"session": 1}
-            with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
+            with open(f"{LOG_PATH}chats/session/{chat_id}.json", "w") as f:
                 json.dump(data, f)
         while True:
             file_num, filename, prompt = await read_existing_conversation(chat_id)
@@ -59,7 +59,7 @@ async def start_and_check(
                     f"**Reach {num_tokens} tokens**, exceeds 4096, clear old chat, creating new chat"
                 )
                 data = {"session": file_num}
-                with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
+                with open(f"{LOG_PATH}chats/session/{chat_id}.json", "w") as f:
                     json.dump(data, f)
                 continue
             elif num_tokens > 4079:  # Summarize old chats
@@ -68,7 +68,7 @@ async def start_and_check(
                 )
                 file_num += 1
                 data = {"session": file_num}
-                with open(f"{LOG_PATH}{chat_id}_session.json", "w") as f:
+                with open(f"{LOG_PATH}chats/session/{chat_id}.json", "w") as f:
                     json.dump(data, f)
                 await over_token(num_tokens, event, prompt, filename)
                 continue
