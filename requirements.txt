@@ -9,3 +9,4 @@ tiktoken
 pytz
 bardapi
 EdgeGPT
+coloredlogs
