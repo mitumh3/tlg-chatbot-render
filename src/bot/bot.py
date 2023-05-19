@@ -8,6 +8,7 @@ from src.handlers import (
     bard_chat_handler,
     bash_handler,
     bing_chat_handler,
+    cancel_handler,
     clear_handler,
     group_chat_handler,
     search_handler,
@@ -44,6 +45,8 @@ async def bot() -> None:
         except Exception as e:
             logging.error(f"Error occurred: {e}")
             raise e
+
+        client.add_event_handler(cancel_handler)
 
         # Search feature
         client.add_event_handler(search_handler)

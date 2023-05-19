@@ -18,6 +18,11 @@ from telethon.tl.functions.messages import SetTypingRequest
 from telethon.tl.types import SendMessageTypingAction
 
 
+@register(NewMessage(pattern="/cancel"))
+async def cancel_handler(event: NewMessage) -> None:
+    raise StopPropagation
+
+
 @register(NewMessage(pattern="/search"))
 async def search_handler(event: NewMessage) -> None:
     client = event.client
