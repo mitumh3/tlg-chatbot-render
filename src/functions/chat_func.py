@@ -10,7 +10,6 @@ from EdgeGPT import Chatbot
 from src.utils import (
     LOG_PATH,
     SYS_MESS,
-    SYS_MESS_SENPAI,
     Prompt,
     num_tokens_from_messages,
     read_existing_conversation,
@@ -102,8 +101,17 @@ def get_openai_response(prompt: Prompt, filename: str) -> List[str]:
 
 def get_bard_response(input_text: str) -> List[str]:
     try:
+        if input_text.startswith("/timeout"):
+            split_text = input_text.split(maxsplit=2)
+            try:
+                timeout = int(split_text[1])
+            except Exception as e:
+                logging.error(f"Incorrect time input: {e}")
+                return "Incorrect time input! Correct input should follow: **/bard /timeout {number}**. For example: /bard /timeout 120"
+        else:
+            timeout = 60
         # Send an API request and get a response.
-        responses = bardapi.core.Bard().get_answer(input_text)["content"]
+        responses = bardapi.core.Bard(timeout=timeout).get_answer(input_text)["content"]
         logging.debug("Received response from bard")
     except Exception as e:
         responses = "💩 Bard is being stupid, please try again "
