@@ -89,7 +89,6 @@ async def start_and_check(
 def get_openai_response(prompt: Prompt, filename: str) -> List[str]:
     MAX_TOKEN = src.utils.utils.max_token
     MODEL = src.utils.utils.model
-    print(MODEL, MAX_TOKEN)
     trial = 0
     while trial < 5:
         try:
