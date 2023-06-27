@@ -4,6 +4,9 @@ from typing import Tuple
 
 import openai
 from dotenv import load_dotenv
+from telethon import TelegramClient
+from telethon.errors.rpcerrorlist import UnauthorizedError
+
 from src.handlers import (
     bard_chat_handler,
     bash_handler,
@@ -13,10 +16,9 @@ from src.handlers import (
     group_chat_handler,
     search_handler,
     senpai_chat_handler,
+    switch_model_handler,
     user_chat_handler,
 )
-from telethon import TelegramClient
-from telethon.errors.rpcerrorlist import UnauthorizedError
 
 
 # Load  keys
@@ -59,6 +61,10 @@ async def bot() -> None:
         # Clear chat history feature
         client.add_event_handler(clear_handler)
         logging.debug("Clear handler added")
+
+        # Switch gpt model
+        client.add_event_handler(switch_model_handler)
+        logging.debug("Switch model handler added")
 
         # User and group chat
         client.add_event_handler(bard_chat_handler)

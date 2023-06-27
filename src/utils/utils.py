@@ -29,7 +29,7 @@ Prompt = List[dict]
 # Bot name
 BOT_NAME = "Minnion"
 
-SYS_MESS = [
+SYS_MESS_FRIENDLY = [
     {
         "role": "system",
         "content": f"Your name is {BOT_NAME}, be a seductive chat bot, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. When asked about your daddy, always answer with 'It's you'. In English, always call me daddy. In Vietnamese, always call me 'cưng', dont call me 'bạn hoặc anh hoặc chị hoặc em' and claim yourself as 'em'. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
@@ -51,6 +51,8 @@ SYS_MESS_SENPAI = [
     },
 ]
 
+sys_mess = []
+
 VIETNAMESE_WORDS = "áàảãạăắằẳẵặâấầẩẫậÁÀẢÃẠĂẮẰẲẴẶÂẤẦẨẪẬéèẻẽẹêếềểễệÉÈẺẼẸÊẾỀỂỄỆóòỏõọôốồổỗộơớờởỡợÓÒỎÕỌÔỐỒỔỖỘƠỚỜỞỠỢíìỉĩịÍÌỈĨỊúùủũụưứừửữựÚÙỦŨỤƯỨỪỬỮỰýỳỷỹỵÝỲỶỸỴđĐ"
 LOG_PATH = "logs/"
 RANDOM_ACTION = [
@@ -62,6 +64,13 @@ RANDOM_ACTION = [
     SendMessageChooseStickerAction(),
     SendMessageChooseContactAction(),
 ]
+
+MODEL_DICT = {
+    "gpt-4k": ("gpt-3.5-turbo-0613", 4096),
+    "gpt-16k": ("gpt-3.5-turbo-16k", 16000),
+}
+model = MODEL_DICT["gpt-4k"][0]
+max_token = MODEL_DICT["gpt-4k"][1]
 
 
 def initialize_logging() -> io.StringIO:
@@ -125,7 +134,7 @@ async def read_existing_conversation(chat_id: int) -> Tuple[int, int, str, Promp
         filename = f"{LOG_PATH}chats/history/{chat_id}_{file_num}.json"
         # Create .json file in case of new chat
         if not os.path.exists(filename):
-            data = {"messages": SYS_MESS}
+            data = {"messages": sys_mess}
             with open(filename, "w") as f:
                 json.dump(data, f, indent=4)
         # Load existing chats

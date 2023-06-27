@@ -1,6 +1,12 @@
 import asyncio
+import glob
 import logging
 import random
+
+from telethon.events import NewMessage, StopPropagation, register
+from telethon.tl.custom import Button
+from telethon.tl.functions.messages import SetTypingRequest
+from telethon.tl.types import SendMessageTypingAction
 
 import src.utils.utils
 from src.functions.additional_func import bash, search
@@ -11,11 +17,16 @@ from src.functions.chat_func import (
     process_and_send_mess,
     start_and_check,
 )
-from src.utils import LOG_PATH, RANDOM_ACTION, SYS_MESS_SENPAI, check_chat_type
-from telethon.events import NewMessage, StopPropagation, register
-from telethon.tl.custom import Button
-from telethon.tl.functions.messages import SetTypingRequest
-from telethon.tl.types import SendMessageTypingAction
+from src.utils import (
+    LOG_PATH,
+    MODEL_DICT,
+    RANDOM_ACTION,
+    SYS_MESS_FRIENDLY,
+    SYS_MESS_SENPAI,
+    check_chat_type,
+)
+
+# TODO: create /switchtone and /switchmodel
 
 
 @register(NewMessage(pattern="/cancel"))
@@ -136,6 +147,41 @@ async def bing_chat_handler(event: NewMessage) -> None:
     raise StopPropagation
 
 
+@register(NewMessage(pattern="/switchmodel"))
+async def switch_model_handler(event: NewMessage) -> None:
+    model = event.raw_text.split(" ", maxsplit=1)[1]
+    client = event.client
+    try:
+        if model not in MODEL_DICT:
+            available_models = "**, **".join(MODEL_DICT.keys())
+            await client.send_message(
+                event.chat_id,
+                f"Model not found, available models: **{available_models}**",
+            )
+        elif MODEL_DICT[model][0] == src.utils.utils.model:
+            await client.send_message(
+                event.chat_id, f"**{MODEL_DICT[model][0]}** is being used already"
+            )
+        else:
+            src.utils.utils.model = MODEL_DICT[model][0]  # Overwrite system MODEL
+            src.utils.utils.max_token = MODEL_DICT[model][1]
+            # TODO: This is wrong but save it for future switchtone
+            # if len(glob.glob(f"{LOG_PATH}chats/history/{event.chat_id}*")) > 0:
+            #     await client.send_message(
+            #         event.chat_id,
+            #         f"Successfully set model to **{MODEL_DICT[model][0]}**\n\nSwitching model requires a chat history reset, please perform /clear and the change will be applied.",
+            #     )
+            # else:
+            await client.send_message(
+                event.chat_id,
+                f"Successfully set model to **{MODEL_DICT[model][0]}**",
+            )
+            logging.debug(f"Model switched to {MODEL_DICT[model][0]}")
+    except Exception as e:
+        logging.error(f"Error occurred while switching model: {e}")
+    raise StopPropagation
+
+
 @register(NewMessage(pattern="/senpai"))
 async def senpai_chat_handler(event: NewMessage) -> None:
     # Get info
@@ -144,7 +190,7 @@ async def senpai_chat_handler(event: NewMessage) -> None:
         message = message.split(" ", maxsplit=1)[1]
     logging.debug(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
-    src.utils.utils.SYS_MESS = SYS_MESS_SENPAI  # Overwrite system mess
+    src.utils.utils.sys_mess = SYS_MESS_SENPAI  # Overwrite system mess
 
     # Inialize
     filename, prompt = await start_and_check(event, message, chat_id)
@@ -178,6 +224,7 @@ async def user_chat_handler(event: NewMessage) -> None:
     else:
         logging.debug(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+    src.utils.utils.sys_mess = SYS_MESS_SENPAI  # Overwrite system mess
 
     # Inialize
     filename, prompt = await start_and_check(event, message, chat_id)
@@ -211,6 +258,7 @@ async def group_chat_handler(event: NewMessage) -> None:
     else:
         logging.debug(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+    src.utils.utils.sys_mess = SYS_MESS_FRIENDLY  # Overwrite system mess
 
     # Inialize
     filename, prompt = await start_and_check(event, message, chat_id)
