@@ -10,3 +10,4 @@ pytz
 bardapi==0.1.29
 EdgeGPT==0.12.1
 coloredlogs
+log2d
