@@ -115,6 +115,10 @@ async def bing_chat_handler(event: NewMessage) -> None:
     logging.debug(f"Check chat type {chat_type} done")
     await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
 
+    # Under maintainance
+    await event.reply("**Cannot use this anymore**")
+    raise StopPropagation
+
     # Inialize
     loop = asyncio.get_event_loop()
 
