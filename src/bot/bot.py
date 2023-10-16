@@ -11,7 +11,6 @@ from src.handlers import (
     bard_chat_handler,
     bash_handler,
     bing_chat_handler,
-    cancel_handler,
     clear_handler,
     group_chat_handler,
     search_handler,
@@ -26,9 +25,9 @@ from src.handlers import (
 def load_keys() -> Tuple[str, int, str]:
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
+    openai.organization = os.getenv("OPENAI_ORG")
     api_id = os.getenv("API_ID")
     api_hash = os.getenv("API_HASH")
-    openai.organization = os.getenv("OPENAI_ORG")
     bot_token = os.getenv("BOTTOKEN")
     return api_id, api_hash, bot_token
 
@@ -49,8 +48,6 @@ async def bot() -> None:
         except Exception as e:
             logging.error(f"Error occurred: {e}")
             raise e
-
-        client.add_event_handler(cancel_handler)
 
         client.add_event_handler(security_check)
 

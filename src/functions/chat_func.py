@@ -6,6 +6,7 @@ from typing import List, Tuple
 
 import bardapi
 import openai
+from bardapi import Bard
 from EdgeGPT.EdgeUtils import Query
 from openai.error import APIConnectionError
 from telethon.events import NewMessage
@@ -123,9 +124,15 @@ def get_bard_response(input_text: str) -> List[str]:
                 return "Incorrect time input! Correct input should follow: **/bard /timeout {number}**. For example: /bard /timeout 120"
         else:
             timeout = 60
-        # Send an API request and get a response.
-        responses = bardapi.core.Bard(timeout=timeout).get_answer(input_text)["content"]
-        logging.debug("Received response from bard")
+        try:
+            responses = Bard(token_from_browser=True).get_answer(input_text)
+            logging.debug("Received response from bard by token_from_browser")
+        except:
+            # Send an API request and get a response.
+            responses = bardapi.core.Bard(timeout=timeout).get_answer(input_text)[
+                "content"
+            ]
+            logging.debug("Received response from bard by token")
     except Exception as e:
         responses = "🤯 Bard is under construction, dont use it for now "
         logging.error(f"Error occurred while getting response from bard: {e}")
