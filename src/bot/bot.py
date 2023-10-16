@@ -15,6 +15,7 @@ from src.handlers import (
     clear_handler,
     group_chat_handler,
     search_handler,
+    security_check,
     senpai_chat_handler,
     switch_model_handler,
     user_chat_handler,
@@ -27,6 +28,7 @@ def load_keys() -> Tuple[str, int, str]:
     openai.api_key = os.getenv("OPENAI_API_KEY")
     api_id = os.getenv("API_ID")
     api_hash = os.getenv("API_HASH")
+    openai.organization = os.getenv("OPENAI_ORG")
     bot_token = os.getenv("BOTTOKEN")
     return api_id, api_hash, bot_token
 
@@ -49,6 +51,8 @@ async def bot() -> None:
             raise e
 
         client.add_event_handler(cancel_handler)
+
+        client.add_event_handler(security_check)
 
         # Search feature
         client.add_event_handler(search_handler)

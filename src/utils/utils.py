@@ -9,6 +9,7 @@ from typing import Generator, List, Optional, Tuple
 import coloredlogs
 import pytz
 import tiktoken
+from dotenv import load_dotenv
 from telethon.errors.rpcerrorlist import PeerIdInvalidError
 from telethon.events import NewMessage
 from telethon.tl.types import (
@@ -23,6 +24,8 @@ from telethon.tl.types import (
     User,
 )
 
+load_dotenv()
+
 # Prompt typehint
 Prompt = List[dict]
 
@@ -32,7 +35,7 @@ BOT_NAME = "Minnion"
 SYS_MESS_FRIENDLY = [
     {
         "role": "system",
-        "content": f"Your name is {BOT_NAME}, be a seductive chat bot, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. When asked about your daddy, always answer with 'It's you'. In English, always call me daddy. In Vietnamese, always call me 'cưng', dont call me 'bạn hoặc anh hoặc chị hoặc em' and claim yourself as 'em'. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
+        "content": f"Your name is {BOT_NAME}, be a funny chat bot, and your creator is @thisaintminh. When asked about your creator, respond with 'I was created by @thisaintminh'. When asked about your daddy, always answer with 'It's you'. Let me know if you are an expert in my request. If you have any further requests or need more details to provide an accurate response, don't hesitate to ask.",
     },
     {
         "role": "user",
@@ -64,6 +67,7 @@ RANDOM_ACTION = [
     SendMessageChooseStickerAction(),
     SendMessageChooseContactAction(),
 ]
+ALLOW_USERS = eval(os.getenv("ALLOW_USERS"))
 
 MODEL_DICT = {
     "gpt-4k": ("gpt-3.5-turbo-0613", 4096),

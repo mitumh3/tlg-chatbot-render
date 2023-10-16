@@ -18,6 +18,7 @@ from src.functions.chat_func import (
     start_and_check,
 )
 from src.utils import (
+    ALLOW_USERS,
     LOG_PATH,
     MODEL_DICT,
     RANDOM_ACTION,
@@ -26,12 +27,17 @@ from src.utils import (
     check_chat_type,
 )
 
-# TODO: create /switchtone and /switchmodel
 
-
-@register(NewMessage(pattern="/cancel"))
-async def cancel_handler(event: NewMessage) -> None:
-    raise StopPropagation
+@register(NewMessage())
+async def security_check(event: NewMessage) -> None:
+    client = event.client
+    chat_id = event.chat_id
+    await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+    if chat_id not in ALLOW_USERS:
+        await client.send_message(
+            chat_id, f"This is personal property, you are not allowed to proceed!"
+        )
+        raise StopPropagation
 
 
 @register(NewMessage(pattern="/search"))
