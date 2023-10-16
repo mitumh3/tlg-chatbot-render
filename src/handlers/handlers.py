@@ -30,10 +30,9 @@ from src.utils import (
 
 @register(NewMessage())
 async def security_check(event: NewMessage) -> None:
-    client = event.client
     chat_id = event.chat_id
-    await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
     if chat_id not in ALLOW_USERS:
+        client = event.client
         await client.send_message(
             chat_id, f"This is personal property, you are not allowed to proceed!"
         )
