@@ -2,12 +2,25 @@ import asyncio
 import logging
 import random
 
-from src.functions.additional_func import bash, search
-from src.functions.chat_func import get_response, process_and_send_mess, start_and_check
-from src.utils import RANDOM_ACTION, check_chat_type
 from telethon.events import NewMessage, StopPropagation, register
 from telethon.tl.functions.messages import SetTypingRequest
 from telethon.tl.types import SendMessageTypingAction
+
+from src.functions.additional_func import bash, search
+from src.functions.chat_func import get_response, process_and_send_mess, start_and_check
+from src.utils import ALLOW_USERS, RANDOM_ACTION, check_chat_type
+
+
+@register(NewMessage())
+async def security_check(event: NewMessage) -> None:
+    client = event.client
+    chat_id = event.chat_id
+    await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+    if chat_id not in ALLOW_USERS:
+        await client.send_message(
+            chat_id, f"This is personal property, you are not allowed to proceed!"
+        )
+        raise StopPropagation
 
 
 @register(NewMessage(pattern="/search"))

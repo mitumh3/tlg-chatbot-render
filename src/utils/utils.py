@@ -1,4 +1,3 @@
-import asyncio
 import io
 import json
 import logging
@@ -7,6 +6,7 @@ import re
 from typing import Generator, List, Optional, Tuple
 
 import tiktoken
+from dotenv import load_dotenv
 from telethon.errors.rpcerrorlist import PeerIdInvalidError
 from telethon.events import NewMessage
 from telethon.tl.types import (
@@ -20,6 +20,8 @@ from telethon.tl.types import (
     SendMessageRecordVideoAction,
     User,
 )
+
+load_dotenv()
 
 # Prompt typehint
 Prompt = List[dict]
@@ -53,6 +55,7 @@ RANDOM_ACTION = [
     SendMessageChooseStickerAction(),
     SendMessageChooseContactAction(),
 ]
+ALLOW_USERS = eval(os.getenv("ALLOW_USERS"))
 
 
 def initialize_logging() -> io.StringIO:

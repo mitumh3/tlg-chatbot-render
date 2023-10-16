@@ -5,9 +5,10 @@ import subprocess
 from typing import Generator
 
 import uvicorn
-from __version__ import __version__
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, StreamingResponse
+
+from __version__ import __version__
 from src.bot import bot
 from src.utils import (
     BOT_NAME,
@@ -64,25 +65,25 @@ async def log_check() -> StreamingResponse:
     return StreamingResponse(generate_log())
 
 
-@app.get("/terminal", response_class=HTMLResponse)
-async def terminal(request: Request) -> Response:
-    return Response(content=terminal_html(), media_type="text/html")
+# @app.get("/terminal", response_class=HTMLResponse)
+# async def terminal(request: Request) -> Response:
+#     return Response(content=terminal_html(), media_type="text/html")
 
 
-@app.post("/terminal/run")
-async def run_command(command: dict) -> str:
-    try:
-        output_bytes = subprocess.check_output(
-            command["command"], shell=True, stderr=subprocess.STDOUT
-        )
-        output_str = output_bytes.decode("utf-8")
-        # Split output into lines and remove any leading/trailing whitespace
-        output_lines = [line.strip() for line in output_str.split("\n")]
-        # Join lines with a <br> tag for display in HTML
-        formatted_output = "<br>".join(output_lines)
-    except subprocess.CalledProcessError as e:
-        formatted_output = e.output.decode("utf-8")
-    return formatted_output
+# @app.post("/terminal/run")
+# async def run_command(command: dict) -> str:
+#     try:
+#         output_bytes = subprocess.check_output(
+#             command["command"], shell=True, stderr=subprocess.STDOUT
+#         )
+#         output_str = output_bytes.decode("utf-8")
+#         # Split output into lines and remove any leading/trailing whitespace
+#         output_lines = [line.strip() for line in output_str.split("\n")]
+#         # Join lines with a <br> tag for display in HTML
+#         formatted_output = "<br>".join(output_lines)
+#     except subprocess.CalledProcessError as e:
+#         formatted_output = e.output.decode("utf-8")
+#     return formatted_output
 
 
 # Minnion run
