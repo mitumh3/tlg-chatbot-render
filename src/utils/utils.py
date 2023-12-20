@@ -70,7 +70,7 @@ RANDOM_ACTION = [
 ALLOW_USERS = eval(os.getenv("ALLOW_USERS"))
 
 MODEL_DICT = {
-    "gpt-4k": ("gpt-3.5-turbo-0613", 4096),
+    "gpt-4k": ("gpt-3.5-turbo-1106", 4096),
     "gpt-16k": ("gpt-3.5-turbo-16k", 16000),
 }
 model = MODEL_DICT["gpt-4k"][0]

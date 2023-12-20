@@ -5,6 +5,7 @@ import os
 from typing import List, Tuple
 
 import bardapi
+import google.generativeai as genai
 import openai
 from bardapi import Bard
 from EdgeGPT.EdgeUtils import Query
@@ -87,7 +88,7 @@ async def start_and_check(
     return filename, prompt
 
 
-def get_openai_response(prompt: Prompt, filename: str) -> List[str]:
+def get_openai_response(prompt: Prompt, filename: str) -> str:
     MAX_TOKEN = src.utils.utils.max_token
     MODEL = src.utils.utils.model
     trial = 0
@@ -113,7 +114,7 @@ def get_openai_response(prompt: Prompt, filename: str) -> List[str]:
     return responses
 
 
-def get_bard_response(input_text: str) -> List[str]:
+def get_bard_response(input_text: str) -> str:
     try:
         if input_text.startswith("/timeout"):
             split_text = input_text.split(maxsplit=2)
@@ -136,6 +137,17 @@ def get_bard_response(input_text: str) -> List[str]:
     except Exception as e:
         responses = "🤯 Bard is under construction, dont use it for now "
         logging.error(f"Error occurred while getting response from bard: {e}")
+    return responses
+
+
+def get_gemini_response(input_text: str) -> str:
+    try:
+        model = genai.GenerativeModel("gemini-pro")
+        response = model.generate_content(input_text)
+        responses = response.text
+    except Exception as e:
+        responses = "💩 Gemini is being stupid, please try again "
+        logging.error(f"Error occurred while getting response from gemini: {e}")
     return responses
 
 

@@ -2,6 +2,7 @@ import logging
 import os
 from typing import Tuple
 
+import google.generativeai as genai
 import openai
 from dotenv import load_dotenv
 from telethon import TelegramClient
@@ -12,6 +13,7 @@ from src.handlers import (
     bash_handler,
     bing_chat_handler,
     clear_handler,
+    gemini_chat_handler,
     group_chat_handler,
     search_handler,
     security_check,
@@ -26,6 +28,7 @@ def load_keys() -> Tuple[str, int, str]:
     load_dotenv()
     openai.api_key = os.getenv("OPENAI_API_KEY")
     openai.organization = os.getenv("OPENAI_ORG")
+    genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
     api_id = os.getenv("API_ID")
     api_hash = os.getenv("API_HASH")
     bot_token = os.getenv("BOTTOKEN")
@@ -73,6 +76,8 @@ async def bot() -> None:
         client.add_event_handler(bing_chat_handler)
         logging.debug("Bing chat handler added")
         client.add_event_handler(senpai_chat_handler)
+        logging.debug("Gemini chat handler added")
+        client.add_event_handler(gemini_chat_handler)
         logging.debug("Senpai chat handler added")
         client.add_event_handler(group_chat_handler)
         logging.debug("Group chat handler added")

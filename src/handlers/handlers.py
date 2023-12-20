@@ -13,6 +13,7 @@ from src.functions.additional_func import bash, search
 from src.functions.chat_func import (
     get_bard_response,
     get_bing_response,
+    get_gemini_response,
     get_openai_response,
     process_and_send_mess,
     start_and_check,
@@ -148,6 +149,37 @@ async def bing_chat_handler(event: NewMessage) -> None:
             silent=True,
             buttons=buttons,
         )
+        logging.debug(f"Sent message to {chat_id}")
+    except Exception as e:
+        logging.error(f"Error occurred when handling {chat_type} chat: {e}")
+        await event.reply("**Fail to get response**")
+    await client.action(chat_id, "cancel")
+    raise StopPropagation
+
+
+@register(NewMessage(pattern="/gemini"))
+async def gemini_chat_handler(event: NewMessage) -> None:
+    # Get info
+    chat_type, client, chat_id, message = await check_chat_type(event)
+    if chat_type == "User":
+        message = message.split(" ", maxsplit=1)[1]
+    logging.debug(f"Check chat type {chat_type} done")
+    await client(SetTypingRequest(peer=chat_id, action=SendMessageTypingAction()))
+
+    # Inialize
+    loop = asyncio.get_event_loop()
+
+    # Get response from openAI
+    future = loop.run_in_executor(None, get_gemini_response, message)
+    while not future.done():  # Loop of random actions indicates running process
+        random_choice = random.choice(RANDOM_ACTION)
+        await asyncio.sleep(2)
+        await client(SetTypingRequest(peer=chat_id, action=random_choice))
+    response = await future
+
+    # Send response to chat id
+    try:
+        await process_and_send_mess(event, response)
         logging.debug(f"Sent message to {chat_id}")
     except Exception as e:
         logging.error(f"Error occurred when handling {chat_type} chat: {e}")
