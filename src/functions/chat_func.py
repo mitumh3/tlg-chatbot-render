@@ -7,6 +7,7 @@ from typing import List, Tuple
 import bardapi
 import google.generativeai as genai
 import openai
+import PIL.Image
 from bardapi import Bard
 from EdgeGPT.EdgeUtils import Query
 from openai.error import APIConnectionError
@@ -148,6 +149,28 @@ def get_gemini_response(input_text: str) -> str:
     except Exception as e:
         responses = "💩 Gemini is being stupid, please try again "
         logging.error(f"Error occurred while getting response from gemini: {e}")
+    return responses
+
+
+def get_gemini_vison_response(input_text: str, img_path: str) -> str:
+    try:
+        img = PIL.Image.open(img_path)
+        try:
+            model = genai.GenerativeModel("gemini-pro-vision")
+            response = model.generate_content(
+                [
+                    input_text,
+                    img,
+                ],
+            )
+            response.resolve()
+            responses = response.text
+        except Exception as e:
+            responses = "💩 Gemini is being stupid, please try again "
+            logging.error(f"Error occurred while getting response from gemini: {e}")
+    except Exception as e:
+        responses = "💩 Something wrong with processing the media"
+        logging.error(f"Error occurred while processing the media: {e}")
     return responses
 
 

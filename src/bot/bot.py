@@ -20,6 +20,7 @@ from src.handlers import (
     senpai_chat_handler,
     switch_model_handler,
     user_chat_handler,
+    vision_chat_handler,
 )
 
 
@@ -75,9 +76,11 @@ async def bot() -> None:
         logging.debug("Bard chat handler added")
         client.add_event_handler(bing_chat_handler)
         logging.debug("Bing chat handler added")
-        client.add_event_handler(senpai_chat_handler)
-        logging.debug("Gemini chat handler added")
         client.add_event_handler(gemini_chat_handler)
+        logging.debug("Gemini chat handler added")
+        client.add_event_handler(vision_chat_handler)
+        logging.debug("Gemini chat handler added")
+        client.add_event_handler(senpai_chat_handler)
         logging.debug("Senpai chat handler added")
         client.add_event_handler(group_chat_handler)
         logging.debug("Group chat handler added")
