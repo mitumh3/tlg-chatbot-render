@@ -144,7 +144,27 @@ def get_bard_response(input_text: str) -> str:
 def get_gemini_response(input_text: str) -> str:
     try:
         model = genai.GenerativeModel("gemini-pro")
-        response = model.generate_content(input_text)
+        response = model.generate_content(
+            input_text,
+            safety_settings=[
+                {
+                    "category": "HARM_CATEGORY_HARASSMENT",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_HATE_SPEECH",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                    "threshold": "BLOCK_NONE",
+                },
+                {
+                    "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                    "threshold": "BLOCK_NONE",
+                },
+            ],
+        )
         responses = response.text
     except Exception as e:
         responses = "💩 Gemini is being stupid, please try again "
@@ -161,6 +181,24 @@ def get_gemini_vison_response(input_text: str, img_path: str) -> str:
                 [
                     input_text,
                     img,
+                ],
+                safety_settings=[
+                    {
+                        "category": "HARM_CATEGORY_HARASSMENT",
+                        "threshold": "BLOCK_NONE",
+                    },
+                    {
+                        "category": "HARM_CATEGORY_HATE_SPEECH",
+                        "threshold": "BLOCK_NONE",
+                    },
+                    {
+                        "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                        "threshold": "BLOCK_NONE",
+                    },
+                    {
+                        "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                        "threshold": "BLOCK_NONE",
+                    },
                 ],
             )
             response.resolve()
