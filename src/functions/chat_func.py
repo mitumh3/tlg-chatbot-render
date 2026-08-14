@@ -110,7 +110,7 @@ def get_openai_response(prompt: Prompt, filename: str) -> str:
             logging.error(f"API Connection failed: {e}")
             trial += 1
         except Exception as e:
-            responses = "💩 OpenAI is being stupid, please try again "
+            responses = "💩 OpenAI is being really busy, please try again "
             logging.error(f"Error occurred while getting response from openai: {e}")
             trial += 1
     return responses
